@@ -276,52 +276,32 @@ def serve_static_file(directory, filepath, fallback_directory=None):
 @limiter.exempt
 def serve_index():
     """Serve the main Viom index page"""
-    log_info("Serving Viom main index.html")
-    return serve_static_file("viom-website-main", "index.html")
-
-@app.route("/viom-website-main/<path:path>")
-@limiter.exempt
-def serve_viom_assets(path):
-    """Serve Viom website assets with proper MIME types"""
-    return serve_static_file("viom-website-main", path)
+    return send_from_directory("viom-website-main", "index.html")
 
 @app.route("/assets/<path:path>")
 @limiter.exempt
 def serve_assets(path):
-    """Serve assets with proper MIME types and caching"""
-    return serve_static_file("viom-website-main/assets", path, fallback_directory="public/assets")
+    """Serve assets from viom-website-main/assets"""
+    try:
+        return send_from_directory("viom-website-main/assets", path)
+    except Exception as e:
+        log_error(f"Error serving asset {path}: {str(e)}")
+        return "File not found", 404
 
-@app.route("/public/<path:path>")
-@limiter.exempt
-def serve_public(path):
-    """Serve files from public directory"""
-    return serve_static_file("public", path)
-
-@app.route("/public/")
-@limiter.exempt
-def serve_public_index():
-    """Serve public index.html"""
-    return serve_static_file("public", "index.html")
-
+# Nimble routes (these should stay as they are)
 @app.route("/nimble")
 @app.route("/nimble/")
 def serve_nimble():
-    log_info("Serving Nimble product page")
-    return send_from_directory("public", "index.html", mimetype='text/html')
+    """Serve Nimble product page"""
+    return send_from_directory("public", "index.html")
 
 @app.route("/nimble/<path:path>")
 def serve_nimble_assets(path):
-    # Define valid paths
+    """Serve Nimble assets"""
     valid_paths = ["doc", "success", "cancel", "thankyou"]
-    
-    # Check if this is a valid path or an asset request
     if path in valid_paths or path.startswith("assets/"):
-        log_info(f"Serving Nimble asset: {path}")
-        return send_from_directory("public", path, mimetype=get_mime_type(path))
-    else:
-        # This is an invalid path, serve the 404 page
-        log_info(f"Invalid Nimble path requested: {path}, serving 404 page")
-        return send_from_directory("public", "404.html", mimetype='text/html'), 404
+        return send_from_directory("public", path)
+    return send_from_directory("public", "404.html"), 404
 
 @app.route("/nimble/doc")
 def serve_nimble_doc():
@@ -522,29 +502,21 @@ def newsletter_subscribe():
     from newsletter import process_newsletter_subscription
     return process_newsletter_subscription()
 
-@app.route("/<path:invalid_path>")
-def serve_root_404(invalid_path):
-    """Handle invalid paths and serve appropriate response"""
-    # Handle specific file types for Viom website
-    if '.' in invalid_path:
-        try:
-            # Try serving from viom-website-main first
-            if os.path.exists(os.path.join("viom-website-main", invalid_path)):
-                return send_from_directory("viom-website-main", invalid_path, mimetype=get_mime_type(invalid_path))
-            # Then try public directory
-            elif os.path.exists(os.path.join("public", invalid_path)):
-                return send_from_directory("public", invalid_path, mimetype=get_mime_type(invalid_path))
-        except Exception:
-            pass
-    
-    # For Nimble-related paths, use the Nimble 404 page
-    if invalid_path.startswith("nimble/"):
-        log_info(f"Invalid Nimble path requested: {invalid_path}, serving 404 page")
-        return send_from_directory("public", "404.html", mimetype='text/html'), 404
-    
-    # For other paths, redirect to the main page
-    log_info(f"Invalid path requested: {invalid_path}, redirecting to main page")
-    return redirect("/")
+# Catch-all route for other paths
+@app.route("/<path:path>")
+def serve_other(path):
+    """Handle all other paths"""
+    try:
+        # First try viom-website-main
+        if os.path.exists(os.path.join("viom-website-main", path)):
+            return send_from_directory("viom-website-main", path)
+        # Then try public
+        elif os.path.exists(os.path.join("public", path)):
+            return send_from_directory("public", path)
+        # If neither exists, redirect to home
+        return redirect("/")
+    except Exception:
+        return redirect("/")
 
 @app.route("/redis-test")
 def test_redis_connection():
