@@ -1,7 +1,7 @@
 import os
 import stripe
 import requests
-from flask import Flask, jsonify, request, send_from_directory, redirect
+from flask import Flask, jsonify, request, send_from_directory, redirect, url_for
 from dotenv import load_dotenv
 import json
 from flask_cors import CORS
@@ -60,7 +60,11 @@ if is_production and storage_uri == 'memory://':
     log_warning("REDIS_URL not set. Rate limiting will not work correctly with multiple instances.")
 
 # Production configuration
-app.config['PREFERRED_URL_SCHEME'] = 'https'
+if is_production:
+    app.config['PREFERRED_URL_SCHEME'] = 'https'
+else:
+    app.config['PREFERRED_URL_SCHEME'] = 'http'
+
 app.config['SESSION_COOKIE_SECURE'] = True
 app.config['SESSION_COOKIE_HTTPONLY'] = True
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
@@ -121,7 +125,6 @@ stripe.api_key = os.getenv('STRIPE_SECRET_KEY')
 STRIPE_PUBLISHABLE_KEY = os.getenv('STRIPE_PUBLISHABLE_KEY')
 CRYPTLEX_TOKEN = os.getenv("CRYPTLEX_TOKEN")
 WORKER_URL = os.getenv('CLOUDFLARE_WORKER_URL')
-YOUR_DOMAIN = os.getenv('DOMAIN_URL', "http://localhost:4242")
 
 # Validate required configuration in production
 if is_production:
@@ -130,7 +133,6 @@ if is_production:
         'STRIPE_PUBLISHABLE_KEY',
         'CRYPTLEX_TOKEN',
         'CLOUDFLARE_WORKER_URL',
-        'DOMAIN_URL',
         'STRIPE_PRICE_WEB_ID',
         'STRIPE_PRICE_MOBILE_ID',
         'STRIPE_PRICE_COMBO_ID',
@@ -350,18 +352,28 @@ def create_checkout_session():
             # License ID added by worker.js via webhook
         }
 
+        # Generate absolute URLs using request.host_url
+        base_url = request.host_url.rstrip('/')
+        if is_production:
+            base_url = base_url.replace('http:', 'https:')
+        
+        success_url = f"{base_url}/nimble/success"
+        cancel_url = f"{base_url}/nimble/cancel"
+        
+        log_info(f"Success URL: {success_url}")
+        log_info(f"Cancel URL: {cancel_url}")
+
         session = stripe.checkout.Session.create(
             customer=stripe_customer.id,
             payment_method_types=["card"],
             mode="subscription",
-            success_url=YOUR_DOMAIN + "/nimble/success",
-            cancel_url=YOUR_DOMAIN + "/nimble/cancel",
+            success_url=success_url,
+            cancel_url=cancel_url,
             line_items=[{"price": price_id, "quantity": 1}],
             metadata=checkout_metadata,
             subscription_data={
                 "metadata": subscription_metadata,
-                "description": f"Subscription for {user_info}"  
-
+                "description": f"Subscription for {user_info}"
             }
         )
         
