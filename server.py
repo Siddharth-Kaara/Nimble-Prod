@@ -210,21 +210,60 @@ def get_mime_type(path):
     }
     return mime_types.get(extension, 'application/octet-stream')
 
-# Serve static files
+# Viom website routes
 @app.route("/")
 def serve_index():
-    log_info("Serving main index.html")
+    log_info("Serving Viom main index.html")
     return send_from_directory("viom-website-main", "index.html", mimetype='text/html')
 
+@app.route("/viom-website-main/<path:path>")
+def serve_viom_assets(path):
+    """Serve Viom website assets with proper MIME types"""
+    log_info(f"Serving Viom asset: {path}")
+    try:
+        # First try serving from the root of viom-website-main
+        return send_from_directory("viom-website-main", path, mimetype=get_mime_type(path))
+    except Exception as e:
+        log_error(f"Error serving Viom asset {path}: {str(e)}")
+        return redirect("/")
+
+# Public routes
 @app.route("/public/<path:path>")
 def serve_public(path):
+    """Serve files from public directory"""
     log_info(f"Serving public/{path}")
     return send_from_directory("public", path, mimetype=get_mime_type(path))
 
 @app.route("/public/")
 def serve_public_index():
+    """Serve public index.html"""
     log_info("Serving public/index.html")
     return send_from_directory("public", "index.html", mimetype='text/html')
+
+@app.route("/assets/<path:path>")
+def serve_assets(path):
+    """Serve assets with proper MIME types and caching"""
+    log_info(f"Serving asset: {path}")
+    try:
+        # Try serving from viom-website-main/assets first
+        if os.path.exists(os.path.join("viom-website-main/assets", path)):
+            response = send_from_directory("viom-website-main/assets", path, conditional=True)
+        else:
+            # Fall back to public/assets
+            response = send_from_directory("public/assets", path, conditional=True)
+        
+        # Set correct MIME type
+        response.mimetype = get_mime_type(path)
+        
+        # Add caching headers
+        response.cache_control.max_age = 31536000  # 1 year
+        response.cache_control.public = True
+        response.headers['Vary'] = 'Accept-Encoding'
+        
+        return response
+    except Exception as e:
+        log_error(f"Error serving asset {path}: {str(e)}")
+        return redirect("/")
 
 @app.route("/nimble")
 @app.route("/nimble/")
@@ -445,38 +484,20 @@ def newsletter_subscribe():
     from newsletter import process_newsletter_subscription
     return process_newsletter_subscription()
 
-# Add these routes to properly serve static assets from viom-website-main
-
-@app.route("/assets/<path:path>")
-def serve_assets(path):
-    response = send_from_directory("public/assets", path, conditional=True)
-    response.mimetype = get_mime_type(path)
-    
-    # Add caching headers
-    response.cache_control.max_age = 31536000  # 1 year
-    response.cache_control.public = True
-    response.headers['Vary'] = 'Accept-Encoding'
-    
-    return response
-
-@app.route("/viom-website-main/assets/<path:path>")
-def serve_viom_assets_alt(path):
-    log_info(f"Serving viom assets (alt path): {path}")
-    response = send_from_directory("viom-website-main/assets", path, conditional=True)
-    response.mimetype = get_mime_type(path)
-    
-    # Add caching headers
-    response.cache_control.max_age = 31536000  # 1 year
-    response.cache_control.public = True
-    response.headers['Vary'] = 'Accept-Encoding'
-    
-    return response
-
 @app.route("/<path:invalid_path>")
 def serve_root_404(invalid_path):
-    # Skip specific paths that are already handled
-    if invalid_path.startswith("public/") or invalid_path.startswith("assets/"):
-        return send_from_directory(".", invalid_path, mimetype=get_mime_type(invalid_path))
+    """Handle invalid paths and serve appropriate response"""
+    # Handle specific file types for Viom website
+    if '.' in invalid_path:
+        try:
+            # Try serving from viom-website-main first
+            if os.path.exists(os.path.join("viom-website-main", invalid_path)):
+                return send_from_directory("viom-website-main", invalid_path, mimetype=get_mime_type(invalid_path))
+            # Then try public directory
+            elif os.path.exists(os.path.join("public", invalid_path)):
+                return send_from_directory("public", invalid_path, mimetype=get_mime_type(invalid_path))
+        except Exception:
+            pass
     
     # For Nimble-related paths, use the Nimble 404 page
     if invalid_path.startswith("nimble/"):
