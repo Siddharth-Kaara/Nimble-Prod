@@ -1,8 +1,18 @@
 import os
+import sys
 
-# Bind to PORT if provided, otherwise default to 8000
-port = os.getenv("PORT", "8000")
-bind = f"0.0.0.0:{port}"
+# Force port 8000 for Render
+bind = "0.0.0.0:8000"
+
+# Print environment information
+print("=== Gunicorn Configuration ===")
+print(f"Python version: {sys.version}")
+print(f"Current working directory: {os.getcwd()}")
+print(f"Environment variables:")
+print(f"- PORT: {os.getenv('PORT')}")
+print(f"- FLASK_ENV: {os.getenv('FLASK_ENV')}")
+print(f"Binding to: {bind}")
+print("===========================")
 
 # Worker configuration
 workers = 4
@@ -14,4 +24,4 @@ keepalive = 2
 # Logging
 accesslog = "-"
 errorlog = "-"
-loglevel = "info" 
+loglevel = "debug"  # Changed to debug for more detailed logging 
