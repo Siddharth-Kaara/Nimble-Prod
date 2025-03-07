@@ -195,9 +195,10 @@ if is_production:
 # Add error handlers
 @app.errorhandler(404)
 def page_not_found(e):
+    """Handle 404 errors with proper MIME type"""
     log_error(f"404 error: {request.path}")
     if request.path.startswith("/nimble/"):
-        return send_from_directory("public", "404.html"), 404
+        return serve_static_file("public", "404.html")
     return redirect("/")
 
 @app.errorhandler(500)
@@ -233,65 +234,74 @@ def get_mime_type(path):
     }
     return mime_types.get(extension, 'application/octet-stream')
 
+def serve_static_file(directory, filepath, fallback_directory=None):
+    """
+    Serve a static file with proper MIME type handling and logging
+    """
+    log_info(f"Attempting to serve {filepath} from {directory}")
+    try:
+        if os.path.exists(os.path.join(directory, filepath)):
+            response = send_from_directory(directory, filepath, conditional=True)
+            mime_type = get_mime_type(filepath)
+            response.mimetype = mime_type
+            log_info(f"Serving {filepath} with MIME type: {mime_type}")
+            
+            # Add caching headers for static assets
+            response.cache_control.max_age = 31536000  # 1 year
+            response.cache_control.public = True
+            response.headers['Vary'] = 'Accept-Encoding'
+            
+            return response
+        elif fallback_directory and os.path.exists(os.path.join(fallback_directory, filepath)):
+            response = send_from_directory(fallback_directory, filepath, conditional=True)
+            mime_type = get_mime_type(filepath)
+            response.mimetype = mime_type
+            log_info(f"Serving {filepath} from fallback with MIME type: {mime_type}")
+            
+            # Add caching headers for static assets
+            response.cache_control.max_age = 31536000  # 1 year
+            response.cache_control.public = True
+            response.headers['Vary'] = 'Accept-Encoding'
+            
+            return response
+        else:
+            log_error(f"File not found: {filepath} in {directory} or {fallback_directory}")
+            return "File not found", 404
+    except Exception as e:
+        log_error(f"Error serving {filepath}: {str(e)}")
+        return "Error serving file", 500
+
 # Viom website routes
 @app.route("/")
-@limiter.exempt  # Exempt the main page from rate limiting
+@limiter.exempt
 def serve_index():
+    """Serve the main Viom index page"""
     log_info("Serving Viom main index.html")
-    return send_from_directory("viom-website-main", "index.html", mimetype='text/html')
+    return serve_static_file("viom-website-main", "index.html")
 
 @app.route("/viom-website-main/<path:path>")
-@limiter.exempt  # Exempt static assets from rate limiting
+@limiter.exempt
 def serve_viom_assets(path):
     """Serve Viom website assets with proper MIME types"""
-    log_info(f"Serving Viom asset: {path}")
-    try:
-        # First try serving from the root of viom-website-main
-        return send_from_directory("viom-website-main", path, mimetype=get_mime_type(path))
-    except Exception as e:
-        log_error(f"Error serving Viom asset {path}: {str(e)}")
-        return redirect("/")
-
-# Public routes
-@app.route("/public/<path:path>")
-@limiter.exempt  # Exempt public assets from rate limiting
-def serve_public(path):
-    """Serve files from public directory"""
-    log_info(f"Serving public/{path}")
-    return send_from_directory("public", path, mimetype=get_mime_type(path))
-
-@app.route("/public/")
-@limiter.exempt  # Exempt public index from rate limiting
-def serve_public_index():
-    """Serve public index.html"""
-    log_info("Serving public/index.html")
-    return send_from_directory("public", "index.html", mimetype='text/html')
+    return serve_static_file("viom-website-main", path)
 
 @app.route("/assets/<path:path>")
-@limiter.exempt  # Exempt assets from rate limiting
+@limiter.exempt
 def serve_assets(path):
     """Serve assets with proper MIME types and caching"""
-    log_info(f"Serving asset: {path}")
-    try:
-        # Try serving from viom-website-main/assets first
-        if os.path.exists(os.path.join("viom-website-main/assets", path)):
-            response = send_from_directory("viom-website-main/assets", path, conditional=True)
-        else:
-            # Fall back to public/assets
-            response = send_from_directory("public/assets", path, conditional=True)
-        
-        # Set correct MIME type
-        response.mimetype = get_mime_type(path)
-        
-        # Add caching headers
-        response.cache_control.max_age = 31536000  # 1 year
-        response.cache_control.public = True
-        response.headers['Vary'] = 'Accept-Encoding'
-        
-        return response
-    except Exception as e:
-        log_error(f"Error serving asset {path}: {str(e)}")
-        return redirect("/")
+    return serve_static_file("viom-website-main/assets", path, fallback_directory="public/assets")
+
+@app.route("/public/<path:path>")
+@limiter.exempt
+def serve_public(path):
+    """Serve files from public directory"""
+    return serve_static_file("public", path)
+
+@app.route("/public/")
+@limiter.exempt
+def serve_public_index():
+    """Serve public index.html"""
+    return serve_static_file("public", "index.html")
 
 @app.route("/nimble")
 @app.route("/nimble/")
