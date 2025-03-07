@@ -504,6 +504,7 @@ if __name__ == "__main__":
     # Get port from environment variable (Render sets PORT)
     port = int(os.getenv("PORT", "8000"))
     log_info(f"Starting server on port {port}...")
+    log_info(f"PORT environment variable: {os.getenv('PORT', 'not set')}")
     
     # Only run the development server when executed directly
     if not is_production:
