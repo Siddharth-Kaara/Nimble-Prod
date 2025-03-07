@@ -501,16 +501,13 @@ if __name__ == "__main__":
         if not os.getenv(var):
             log_info(f"Optional variable {var} not set: {description}")
     
-    # Get port from environment or default to 4242 for local dev
-    # Render sets PORT environment variable
-    port = int(os.getenv("PORT", 4242))
-    log_info(f"Starting server on 0.0.0.0:{port}...")
+    # Get port from environment variable (Render sets PORT)
+    port = int(os.getenv("PORT", "8000"))
+    log_info(f"Starting server on port {port}...")
     
     # Only run the development server when executed directly
-    # This allows Gunicorn to run the app in production
     if not is_production:
         app.run(host="0.0.0.0", port=port, debug=True)
     else:
-        # In production, Gunicorn will run the app
-        # This code won't be reached when running with Gunicorn
+        # In production, Gunicorn will handle the app
         app.run(host="0.0.0.0", port=port, debug=False)
