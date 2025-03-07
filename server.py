@@ -191,27 +191,46 @@ def handle_exception(e):
     log_error(f"Unhandled exception: {str(e)}")
     return jsonify({"error": "An unexpected error occurred"}), 500
 
+# Serve static files with proper MIME types
+def get_mime_type(path):
+    extension = path.lower().split('.')[-1]
+    mime_types = {
+        'js': 'application/javascript',
+        'css': 'text/css',
+        'png': 'image/png',
+        'jpg': 'image/jpeg',
+        'jpeg': 'image/jpeg',
+        'svg': 'image/svg+xml',
+        'woff': 'font/woff',
+        'woff2': 'font/woff2',
+        'ttf': 'font/ttf',
+        'ico': 'image/x-icon',
+        'html': 'text/html',
+        'json': 'application/json'
+    }
+    return mime_types.get(extension, 'application/octet-stream')
+
 # Serve static files
 @app.route("/")
 def serve_index():
     log_info("Serving main index.html")
-    return send_from_directory("viom-website-main", "index.html")
+    return send_from_directory("viom-website-main", "index.html", mimetype='text/html')
 
 @app.route("/public/<path:path>")
 def serve_public(path):
     log_info(f"Serving public/{path}")
-    return send_from_directory("public", path)
+    return send_from_directory("public", path, mimetype=get_mime_type(path))
 
 @app.route("/public/")
 def serve_public_index():
     log_info("Serving public/index.html")
-    return send_from_directory("public", "index.html")
+    return send_from_directory("public", "index.html", mimetype='text/html')
 
 @app.route("/nimble")
 @app.route("/nimble/")
 def serve_nimble():
     log_info("Serving Nimble product page")
-    return send_from_directory("public", "index.html")
+    return send_from_directory("public", "index.html", mimetype='text/html')
 
 @app.route("/nimble/<path:path>")
 def serve_nimble_assets(path):
@@ -221,11 +240,11 @@ def serve_nimble_assets(path):
     # Check if this is a valid path or an asset request
     if path in valid_paths or path.startswith("assets/"):
         log_info(f"Serving Nimble asset: {path}")
-        return send_from_directory("public", path)
+        return send_from_directory("public", path, mimetype=get_mime_type(path))
     else:
         # This is an invalid path, serve the 404 page
         log_info(f"Invalid Nimble path requested: {path}, serving 404 page")
-        return send_from_directory("public", "404.html"), 404
+        return send_from_directory("public", "404.html", mimetype='text/html'), 404
 
 @app.route("/nimble/doc")
 def serve_nimble_doc():
@@ -431,24 +450,7 @@ def newsletter_subscribe():
 @app.route("/assets/<path:path>")
 def serve_assets(path):
     response = send_from_directory("public/assets", path, conditional=True)
-    
-    # Set correct MIME type based on file extension
-    if path.endswith('.js'):
-        response.mimetype = 'application/javascript'
-    elif path.endswith('.css'):
-        response.mimetype = 'text/css'
-    elif path.endswith('.png'):
-        response.mimetype = 'image/png'
-    elif path.endswith('.jpg') or path.endswith('.jpeg'):
-        response.mimetype = 'image/jpeg'
-    elif path.endswith('.svg'):
-        response.mimetype = 'image/svg+xml'
-    elif path.endswith('.woff'):
-        response.mimetype = 'font/woff'
-    elif path.endswith('.woff2'):
-        response.mimetype = 'font/woff2'
-    elif path.endswith('.ttf'):
-        response.mimetype = 'font/ttf'
+    response.mimetype = get_mime_type(path)
     
     # Add caching headers
     response.cache_control.max_age = 31536000  # 1 year
@@ -460,18 +462,26 @@ def serve_assets(path):
 @app.route("/viom-website-main/assets/<path:path>")
 def serve_viom_assets_alt(path):
     log_info(f"Serving viom assets (alt path): {path}")
-    return send_from_directory("viom-website-main/assets", path)
+    response = send_from_directory("viom-website-main/assets", path, conditional=True)
+    response.mimetype = get_mime_type(path)
+    
+    # Add caching headers
+    response.cache_control.max_age = 31536000  # 1 year
+    response.cache_control.public = True
+    response.headers['Vary'] = 'Accept-Encoding'
+    
+    return response
 
 @app.route("/<path:invalid_path>")
 def serve_root_404(invalid_path):
     # Skip specific paths that are already handled
     if invalid_path.startswith("public/") or invalid_path.startswith("assets/"):
-        return send_from_directory(".", invalid_path)
+        return send_from_directory(".", invalid_path, mimetype=get_mime_type(invalid_path))
     
     # For Nimble-related paths, use the Nimble 404 page
     if invalid_path.startswith("nimble/"):
         log_info(f"Invalid Nimble path requested: {invalid_path}, serving 404 page")
-        return send_from_directory("public", "404.html"), 404
+        return send_from_directory("public", "404.html", mimetype='text/html'), 404
     
     # For other paths, redirect to the main page
     log_info(f"Invalid path requested: {invalid_path}, redirecting to main page")
