@@ -51,9 +51,10 @@ storage_uri = os.getenv('REDIS_URL', 'memory://') if is_production else 'memory:
 limiter = Limiter(
     get_remote_address,
     app=app,
-    default_limits=["200 per day", "50 per hour"],
+    default_limits=["1000 per day", "100 per hour"],  # Increased limits
     storage_uri=storage_uri,
-    strategy="fixed-window"
+    strategy="fixed-window",
+    default_limits_exempt_when=lambda: not is_production  # Disable rate limiting in development
 )
 
 if is_production and storage_uri == 'memory://':
@@ -69,6 +70,21 @@ app.config['SESSION_COOKIE_SECURE'] = True
 app.config['SESSION_COOKIE_HTTPONLY'] = True
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
 
+# Add cache control headers
+@app.after_request
+def add_cache_headers(response):
+    # Cache static assets for 1 year
+    if request.path.startswith('/assets/') or request.path.startswith('/public/'):
+        response.cache_control.max_age = 31536000  # 1 year in seconds
+        response.cache_control.public = True
+        response.headers['Vary'] = 'Accept-Encoding'
+        
+        # Add etag for conditional requests
+        if not response.headers.get('ETag'):
+            response.add_etag()
+    
+    return response
+
 # Add security headers
 @app.after_request
 def add_security_headers(response):
@@ -83,14 +99,23 @@ def add_security_headers(response):
     # Content Security Policy
     response.headers['Content-Security-Policy'] = (
         "default-src 'self'; "
-        "script-src 'self' 'unsafe-inline' https://js.stripe.com https://code.jquery.com; "
-        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
+        "script-src 'self' 'unsafe-inline' https://js.stripe.com https://code.jquery.com https://cdn.jsdelivr.net https://*.bootstrapcdn.com; "
+        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net https://*.bootstrapcdn.com; "
         "font-src 'self' https://fonts.gstatic.com data:; "
-        "img-src 'self' data:; "
+        "img-src 'self' data: https:; "
         "connect-src 'self' https://api.stripe.com; "
         "frame-src https://js.stripe.com; "
-        "object-src 'none'"
+        "object-src 'none'; "
+        "base-uri 'self'"
     )
+
+    # Set correct MIME types for JavaScript and CSS files
+    if response.mimetype == 'application/json':
+        if request.path.endswith('.js'):
+            response.mimetype = 'application/javascript'
+        elif request.path.endswith('.css'):
+            response.mimetype = 'text/css'
+            
     return response
 
 # Configure CORS
@@ -404,9 +429,33 @@ def newsletter_subscribe():
 # Add these routes to properly serve static assets from viom-website-main
 
 @app.route("/assets/<path:path>")
-def serve_viom_assets(path):
-    log_info(f"Serving viom assets: {path}")
-    return send_from_directory("viom-website-main/assets", path)
+def serve_assets(path):
+    response = send_from_directory("public/assets", path, conditional=True)
+    
+    # Set correct MIME type based on file extension
+    if path.endswith('.js'):
+        response.mimetype = 'application/javascript'
+    elif path.endswith('.css'):
+        response.mimetype = 'text/css'
+    elif path.endswith('.png'):
+        response.mimetype = 'image/png'
+    elif path.endswith('.jpg') or path.endswith('.jpeg'):
+        response.mimetype = 'image/jpeg'
+    elif path.endswith('.svg'):
+        response.mimetype = 'image/svg+xml'
+    elif path.endswith('.woff'):
+        response.mimetype = 'font/woff'
+    elif path.endswith('.woff2'):
+        response.mimetype = 'font/woff2'
+    elif path.endswith('.ttf'):
+        response.mimetype = 'font/ttf'
+    
+    # Add caching headers
+    response.cache_control.max_age = 31536000  # 1 year
+    response.cache_control.public = True
+    response.headers['Vary'] = 'Accept-Encoding'
+    
+    return response
 
 @app.route("/viom-website-main/assets/<path:path>")
 def serve_viom_assets_alt(path):
