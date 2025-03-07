@@ -48,13 +48,36 @@ app.logger.setLevel(logging.INFO)
 
 # Initialize rate limiter
 storage_uri = os.getenv('REDIS_URL', 'memory://') if is_production else 'memory://'
+
+def is_health_check():
+    """Check if the request is a health check from Render"""
+    user_agent = request.headers.get('User-Agent', '').lower()
+    return 'go-http-client' in user_agent
+
+def rate_limit_exempt():
+    """Determine if the request should be exempt from rate limiting"""
+    # Exempt health checks
+    if is_health_check():
+        return True
+    
+    # Exempt static file requests
+    if request.path.startswith(('/assets/', '/public/', '/viom-website-main/')):
+        return True
+    
+    # Exempt development environment
+    if not is_production:
+        return True
+    
+    return False
+
 limiter = Limiter(
     get_remote_address,
     app=app,
-    default_limits=["1000 per day", "100 per hour"],  # Increased limits
     storage_uri=storage_uri,
     strategy="fixed-window",
-    default_limits_exempt_when=lambda: not is_production  # Disable rate limiting in development
+    default_limits=["1000 per day", "100 per hour"],
+    default_limits_exempt_when=rate_limit_exempt,
+    headers_enabled=True
 )
 
 if is_production and storage_uri == 'memory://':
@@ -212,11 +235,13 @@ def get_mime_type(path):
 
 # Viom website routes
 @app.route("/")
+@limiter.exempt  # Exempt the main page from rate limiting
 def serve_index():
     log_info("Serving Viom main index.html")
     return send_from_directory("viom-website-main", "index.html", mimetype='text/html')
 
 @app.route("/viom-website-main/<path:path>")
+@limiter.exempt  # Exempt static assets from rate limiting
 def serve_viom_assets(path):
     """Serve Viom website assets with proper MIME types"""
     log_info(f"Serving Viom asset: {path}")
@@ -229,18 +254,21 @@ def serve_viom_assets(path):
 
 # Public routes
 @app.route("/public/<path:path>")
+@limiter.exempt  # Exempt public assets from rate limiting
 def serve_public(path):
     """Serve files from public directory"""
     log_info(f"Serving public/{path}")
     return send_from_directory("public", path, mimetype=get_mime_type(path))
 
 @app.route("/public/")
+@limiter.exempt  # Exempt public index from rate limiting
 def serve_public_index():
     """Serve public index.html"""
     log_info("Serving public/index.html")
     return send_from_directory("public", "index.html", mimetype='text/html')
 
 @app.route("/assets/<path:path>")
+@limiter.exempt  # Exempt assets from rate limiting
 def serve_assets(path):
     """Serve assets with proper MIME types and caching"""
     log_info(f"Serving asset: {path}")
