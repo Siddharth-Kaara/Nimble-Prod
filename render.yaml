@@ -1,0 +1,49 @@
+services:
+  - type: web
+    name: nimble
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn -w $(nproc) --timeout 120 server:app
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.0
+      - key: FLASK_ENV
+        value: production
+      - key: PORT
+        sync: false
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: STRIPE_PUBLISHABLE_KEY
+        sync: false
+      - key: CRYPTLEX_TOKEN
+        sync: false
+      - key: CRYPTLEX_PRODUCT_ID
+        sync: false
+      - key: CRYPTLEX_VERSION_WEB_ID
+        sync: false
+      - key: CRYPTLEX_VERSION_MOBILE_ID
+        sync: false
+      - key: CRYPTLEX_VERSION_COMBO_ID
+        sync: false
+      - key: CRYPTLEX_VERSION_CROSS_ID
+        sync: false
+      - key: STRIPE_PRICE_WEB_ID
+        sync: false
+      - key: STRIPE_PRICE_MOBILE_ID
+        sync: false
+      - key: STRIPE_PRICE_COMBO_ID
+        sync: false
+      - key: STRIPE_PRICE_CROSS_ID
+        sync: false
+      - key: EMAIL_USERNAME
+        sync: false
+      - key: EMAIL_PASSWORD
+        sync: false
+      - key: EMAIL_FROM
+        sync: false
+      - key: ALLOWED_ORIGINS
+        sync: false
+      - key: SENDGRID_API_KEY
+        sync: false
+      - key: REDIS_URL
+        sync: false 

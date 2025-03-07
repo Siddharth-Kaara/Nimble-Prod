@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta content="width=device-width, initial-scale=1.0" name="viewport">
+  <base href="/public/">
+  <title>NIMBLE Automation - Documentation</title>
+  <meta name="description" content="NIMBLE Automation Documentation">
+  <meta name="keywords" content="NIMBLE, automation, testing, framework">
+  
+  <!-- Favicons -->
+  <link href="assets/img/favicon.png" rel="icon">
+  <link href="assets/img/apple-touch-icon.png" rel="apple-touch-icon">
+
+  <!-- Fonts -->
+  <link href="https://fonts.googleapis.com" rel="preconnect">
+  <link href="https://fonts.gstatic.com" rel="preconnect" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Raleway:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
+
+  <!-- Vendor CSS Files -->
+  <link href="assets/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+  <link href="assets/vendor/bootstrap-icons/bootstrap-icons.css" rel="stylesheet">
+  <link href="assets/vendor/aos/aos.css" rel="stylesheet">
+  <link href="assets/vendor/swiper/swiper-bundle.min.css" rel="stylesheet">
+  <link href="assets/vendor/glightbox/css/glightbox.min.css" rel="stylesheet">
+
+  <!-- Main CSS File -->
+  <link href="assets/css/main.css" rel="stylesheet">
+  
+  <style>
+    .documentation-content {
+      font-family: Arial, sans-serif;
+      color: #333333;
+      line-height: 1.6;
+    }
+    .documentation-content h2 {
+      font-size: 24px;
+      color: #333C4E;
+      margin-top: 30px;
+      margin-bottom: 15px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid #EEEEEE;
+    }
+    .documentation-content h3 {
+      font-size: 18px;
+      color: #333333;
+      margin-top: 20px;
+      margin-bottom: 10px;
+    }
+    .documentation-content p {
+      margin-bottom: 15px;
+    }
+    .documentation-content .command-syntax {
+      background-color: #F7F7F7;
+      padding: 10px;
+      font-family: 'Courier New', monospace;
+      font-size: 14px;
+      margin-bottom: 15px;
+      border-radius: 4px;
+    }
+    .documentation-content ul {
+      margin-bottom: 20px;
+    }
+    .documentation-content li {
+      margin-bottom: 8px;
+    }
+    .documentation-content hr {
+      margin: 30px 0;
+      border: 0;
+      border-top: 2px solid #333333;
+    }
+    .documentation-content a {
+      color: #4183C4;
+      text-decoration: none;
+    }
+    .documentation-content a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+
+<body class="index-page">
+
+  <header id="header" class="header d-flex align-items-center sticky-top">
+    <div class="container-fluid container-xl position-relative d-flex align-items-center">
+
+      <a href="/nimble" class="logo d-flex align-items-center me-auto">
+        <!-- Uncomment the line below if you also wish to use an image logo -->
+        <!-- <img src="assets/img/logo.png" alt=""> -->
+        <h1 class="sitename"><img src="assets/img/logo.png"></h1>
+      </a>
+
+      <nav id="navmenu" class="navmenu">
+        <ul>
+          <li><a href="/nimble#hero">Home</a></li>
+          <li><a href="/nimble#about">About</a></li>
+          <li><a href="/nimble#pricing">Pricing</a></li>
+          <li><a href="/nimble#testimonials">Testimonials</a></li>
+          <li><a href="/nimble/doc" class="active">Documentation</a></li>        
+          <li><a href="/nimble#contact">Contact</a></li>
+        </ul>
+        <i class="mobile-nav-toggle d-xl-none bi bi-list"></i>
+      </nav>
+
+      <a class="btn-getstarted" href="https://billing.stripe.com/p/login/test_28oaHtgrA6cn1t6288" target="_blank">Manage Subscription</a>
+      <a class="btn-getstarted1" href="https://pub-3fd5df17b845447ebd3ed7b75f0e1bfc.r2.dev/nimble-1.0.0.jar">Download Nimble</a>
+    </div>
+  </header>
+
+  <main class="main">
+    <!-- Documentation Section -->
+    <section id="documentation" class="about section" style="margin-bottom:-70px !important;">
+      <!-- Section Title -->
+      <div class="container section-title">
+        <h1 style="margin:0 auto;text-align:center;font-size:50px;padding-top:20px;">DOCUMENTATION</h1>
+        <br>
+      </div><!-- End Section Title -->
+
+      <div class="container">
+        <div class="row gy-4">
+          <div class="col-12 documentation-content">
+            
+            <p>NIMBLE is a fully automated test framework designed to streamline testing processes and enhance efficiency in automation suite development and test suite execution. The fundamental ideas that drive this product are:</p>
+            
+            <div class="row" style="margin-bottom: 30px;">
+              <div class="col-md-6">
+                <div style="background-color: #f8f9fa; border-left: 4px solid #4183C4; padding: 20px; height: 100%; border-radius: 5px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+                  <h3 style="color: #333C4E; font-size: 18px; margin-top: 0;"><i class="bi bi-lightning-charge" style="color: #4183C4;"></i> Ease of Use</h3>
+                  <p style="margin-bottom: 0;">Manual testers can easily transition to automation testing without a steep technology learning curve.</p>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div style="background-color: #f8f9fa; border-left: 4px solid #4183C4; padding: 20px; height: 100%; border-radius: 5px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+                  <h3 style="color: #333C4E; font-size: 18px; margin-top: 0;"><i class="bi bi-eye" style="color: #4183C4;"></i> WYSWYW (What You See is What You Write)</h3>
+                  <p style="margin-bottom: 0;">Testers can write scripts based on visible text on the screen, making test creation intuitive and straightforward.</p>
+                </div>
+              </div>
+            </div>
+            
+            <h2 id="key-features">Key Features</h2>
+            
+            <div class="row gy-4" style="margin-bottom: 30px;">
+              <div class="col-md-6">
+                <div style="background-color: #f8f9fa; border-radius: 5px; padding: 20px; height: 100%; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+                  <h3 style="color: #333C4E; font-size: 18px; margin-top: 0;"><i class="bi bi-grid-3x3-gap" style="color: #4183C4;"></i> Modular Structure</h3>
+                  <p style="margin-bottom: 0;">The framework is built with a modular architecture for easy scalability and maintenance.</p>
+                </div>
+              </div>
+              
+              <div class="col-md-6">
+                <div style="background-color: #f8f9fa; border-radius: 5px; padding: 20px; height: 100%; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+                  <h3 style="color: #333C4E; font-size: 18px; margin-top: 0;"><i class="bi bi-pencil-square" style="color: #4183C4;"></i> Customizable Test Cases</h3>
+                  <p style="margin-bottom: 0;">Allows to create custom test cases tailored to specific project requirements.</p>
+                </div>
+              </div>
+              
+              <div class="col-md-6">
+                <div style="background-color: #f8f9fa; border-radius: 5px; padding: 20px; height: 100%; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+                  <h3 style="color: #333C4E; font-size: 18px; margin-top: 0;"><i class="bi bi-phone" style="color: #4183C4;"></i> Cross-Platform Support</h3>
+                  <p style="margin-bottom: 0;">Supports testing across multiple platforms (Android/iOS) to ensure comprehensive test coverage.</p>
+                </div>
+              </div>
+              
+              <div class="col-md-6">
+                <div style="background-color: #f8f9fa; border-radius: 5px; padding: 20px; height: 100%; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+                  <h3 style="color: #333C4E; font-size: 18px; margin-top: 0;"><i class="bi bi-gear" style="color: #4183C4;"></i> Integration Capabilities</h3>
+                  <p style="margin-bottom: 0;">Easily integrates with popular CI/CD tools for seamless automation.</p>
+                </div>
+              </div>
+              
+              <div class="col-md-6">
+                <div style="background-color: #f8f9fa; border-radius: 5px; padding: 20px; height: 100%; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+                  <h3 style="color: #333C4E; font-size: 18px; margin-top: 0;"><i class="bi bi-graph-up" style="color: #4183C4;"></i> Reporting and Analytics</h3>
+                  <p style="margin-bottom: 0;">Provides detailed reports and analytics to track test results and performance metrics.</p>
+                </div>
+              </div>
+            </div>
+            
+            <p>Welcome to the test automation commands documentation. This guide provides an overview of various commands used for automating tests. The commands are categorized for easy reference and usage, each with its syntax, description, and examples on how to use them effectively in your automation scripts.</p>
+            
+            <h2 id="commands">Commands</h2>
+            
+            <ol>
+              <li><a href="#generate">Generate</a></li>
+              <li><a href="#enter">Enter</a></li>
+              <li><a href="#click">Click</a></li>
+              <li><a href="#scroll">Scroll</a></li>
+              <li><a href="#swipe">Swipe</a></li>
+              <li><a href="#slide">Slide</a></li>
+              <li><a href="#relaunch-the-app">Relaunch the App</a></li>
+              <li><a href="#restore-the-app-to-the-foreground">Restore the App to the foreground</a></li>
+              <li><a href="#go-back">Go Back</a></li>
+              <li><a href="#go-home">Go Home</a></li>
+              <li><a href="#read-value">Read Value</a></li>
+              <li><a href="#wait">Wait</a></li>
+              <li><a href="#check">Check</a></li>
+              <li><a href="#api-commands">API Commands</a></li>
+              <li><a href="#conditional-executions">Conditional Executions</a></li>
+              <li><a href="#database-commands">Database Commands</a></li>
+              <li><a href="#kafka-eventing-commands">Kafka Eventing Commands</a></li>
+              <li><a href="#string-operations">String Operations</a></li>
+              <li><a href="#date-operations">Date Operations</a></li>
+              <li><a href="#user-defined-subroutines">User-Defined Subroutines</a></li>
+              <li><a href="#system-variables">System Variables</a></li>
+            </ol>
+            
+            <hr>
+            
+            <h2 id="generate">Generate</h2>
+            
+            <p><strong>Supported Platform(s):</strong> WEB, MOBILE</p>
+            
+            <p><strong>Syntax:</strong></p>
+            
+            <div class="command-syntax">generate "&lt;regex&gt;" and save it as "&lt;variable&gt;"</div>
+            
+            <p><strong>Description:</strong> Generates a random value that matches a given regular expression (regex) and stores it in the cache under a specified variable name.</p>
+            
+            <p><strong>Examples:</strong></p>
+            
+            <p>1. Generate a random code with format <code>abcDE123</code>:</p>
+            <div class="command-syntax">generate "[a-zA-Z]{5}[0-9]{3}" and save it as "randomCode"</div>
+            
+            <p>2. Generate a serial number:</p>
+            <div class="command-syntax">generate "\d{4}-\d{4}-[A-Z]{3}" and save it as "randomSerialNumber"</div>
+            
+            <p>3. Generate a random date that fits the format YYYY-MM-DD:</p>
+            <div class="command-syntax">generate "[1-2][0-9]{3}-[0-1][0-9]-[0-3][0-9]" and save it as "randomDate"</div>
+            
+            <p>4. Generate a random date that fits the format YYYY-MM-DD, such as 2023-09-15 or 1999-01-31:</p>
+            <div class="command-syntax">generate "[1-2][0-9]{3}-[0-1][0-9]-[0-3][0-9]" and save it as "randomDate"</div>
+            
+            <hr>
+            
+            <h2 id="enter">Enter</h2>
+            
+            <p><strong>Supported Platform(s):</strong> WEB, MOBILE</p>
+            
+            <p><strong>Syntax:</strong></p>
+            
+            <div class="command-syntax">enter &lt;[variable &lt;cached_variable&gt;]|[&lt;string&gt;]&gt; [into [(2nd|3rd)] &lt;string&gt;] [with exact phrase]</div>
+            
+            <p><strong>Description:</strong> Simulates entering a specific value into a specified field (denoted by the string position such as "2nd" or "3rd"). The value can either be a cached variable or a literal string. It optionally includes the requirement for an exact phrase match within the input field.</p>
+            
+            <p><strong>Parameters:</strong></p>
+            
+            <div style="margin-bottom: 20px; border: 1px solid #e0e0e0; border-radius: 5px; overflow: hidden;">
+              <table style="width: 100%; border-collapse: collapse;">
+                <thead>
+                  <tr style="background-color: #f5f5f5;">
+                    <th style="padding: 10px; text-align: left; border-bottom: 1px solid #e0e0e0;">Parameter</th>
+                    <th style="padding: 10px; text-align: left; border-bottom: 1px solid #e0e0e0;">Description</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td style="padding: 10px; border-bottom: 1px solid #e0e0e0; font-weight: bold;">variable &lt;cached_variable&gt;</td>
+                    <td style="padding: 10px; border-bottom: 1px solid #e0e0e0;">A previously stored or cached variable to be entered into the field.</td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 10px; border-bottom: 1px solid #e0e0e0; font-weight: bold;">&lt;string&gt;</td>
+                    <td style="padding: 10px; border-bottom: 1px solid #e0e0e0;">A literal string value to be entered into the field.</td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 10px; border-bottom: 1px solid #e0e0e0; font-weight: bold;">into [(2nd|3rd)] &lt;string&gt;</td>
+                    <td style="padding: 10px; border-bottom: 1px solid #e0e0e0;">
+                      Specifies the target field where the value should be entered.<br><br>
+                      <strong>• Ordinal indicator</strong> (2nd, 3rd, etc.): Optional - distinguishes between multiple fields with the same label.<br>
+                      <strong>• &lt;string&gt;</strong>: Identifies the field by its visible text, label, or placeholder.
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 10px; font-weight: bold;">with exact phrase</td>
+                    <td style="padding: 10px;">Optional parameter that enforces an exact, case-sensitive match when identifying the target field.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            
+            <p><strong>Examples:</strong></p>
+            
+            <p>1. Enter a string into a field with "email" in its visible text:</p>
+            <div class="command-syntax">enter "test@example.com" into "email"</div>
+            
+            <p>2. Enter a previously stored variable into a specific field:</p>
+            <div class="command-syntax">enter variable randomEmail into "Email Address"</div>
+            
+            <p>3. Enter text into the second field that contains "password":</p>
+            <div class="command-syntax">enter "securePassword123" into 2nd "password"</div>
+            
+            <p>4. Enter text with exact field matching:</p>
+            <div class="command-syntax">enter "John Doe" into "Full Name" with exact phrase</div>
+            
+            <hr>
+            
+            <h2 id="click">Click</h2>
+            
+            <p><strong>Supported Platform(s):</strong> WEB, MOBILE</p>
+            
+            <p><strong>Syntax:</strong></p>
+            
+            <div class="command-syntax">click [on] [(2nd|3rd)] &lt;string&gt; [with exact phrase]</div>
+            
+            <p><strong>Description:</strong> Simulates a click action on a specified element. The element can be identified by its visible text or label, with an optional ordinal indicator (2nd, 3rd, etc.) to distinguish between multiple elements with the same text.</p>
+            
+            <p><strong>Examples:</strong></p>
+            
+            <p>1. Click on a button labeled "Submit":</p>
+            <div class="command-syntax">click "Submit"</div>
+            
+            <p>2. Click on the second instance of a "Delete" button:</p>
+            <div class="command-syntax">click on 2nd "Delete"</div>
+            
+            <p>3. Click on an element with the exact text "Log In" (case-sensitive):</p>
+            <div class="command-syntax">click "Log In" with exact phrase</div>
+            
+            <hr>
+            
+            <h2 id="scroll">Scroll</h2>
+            
+            <p><strong>Supported Platform(s):</strong> WEB, MOBILE</p>
+            
+            <p><strong>Syntax:</strong></p>
+            
+            <div class="command-syntax">scroll [up|down|left|right] [in &lt;string&gt;]</div>
+            
+            <p><strong>Description:</strong> Simulates scrolling in a specified direction within a container or on the entire page. The optional container can be identified by its visible text or label.</p>
+            
+            <p><strong>Examples:</strong></p>
+            
+            <p>1. Scroll down on the page:</p>
+            <div class="command-syntax">scroll down</div>
+            
+            <p>2. Scroll up in a specific container:</p>
+            <div class="command-syntax">scroll up in "Results List"</div>
+            
+            <p>3. Scroll right in a carousel:</p>
+            <div class="command-syntax">scroll right in "Image Gallery"</div>
+            
+            <hr>
+            
+            <h2 id="swipe">Swipe</h2>
+            
+            <p><strong>Supported Platform(s):</strong> MOBILE</p>
+            
+            <p><strong>Syntax:</strong></p>
+            
+            <div class="command-syntax">swipe [up|down|left|right] [on &lt;string&gt;]</div>
+            
+            <p><strong>Description:</strong> Simulates a swipe gesture in a specified direction, optionally on a specific element identified by its text or label. This command is primarily used for mobile testing.</p>
+            
+            <p><strong>Examples:</strong></p>
+            
+            <p>1. Swipe left on the screen:</p>
+            <div class="command-syntax">swipe left</div>
+            
+            <p>2. Swipe up on a specific element:</p>
+            <div class="command-syntax">swipe up on "Photo Gallery"</div>
+            
+            <hr>
+            
+            <h2 id="slide">Slide</h2>
+            
+            <p><strong>Supported Platform(s):</strong> WEB, MOBILE</p>
+            
+            <p><strong>Syntax:</strong></p>
+            
+            <div class="command-syntax">slide &lt;string&gt; to &lt;value&gt;</div>
+            
+            <p><strong>Description:</strong> Adjusts a slider control to a specified value. The slider is identified by its label or nearby text.</p>
+            
+            <p><strong>Examples:</strong></p>
+            
+            <p>1. Set a volume slider to 75%:</p>
+            <div class="command-syntax">slide "Volume" to 75</div>
+            
+            <p>2. Adjust brightness slider to maximum:</p>
+            <div class="command-syntax">slide "Brightness" to 100</div>
+            
+            <hr>
+            
+            <h2 id="relaunch-the-app">Relaunch the App</h2>
+            
+            <p><strong>Supported Platform(s):</strong> MOBILE</p>
+            
+            <p><strong>Syntax:</strong></p>
+            
+            <div class="command-syntax">relaunch the app</div>
+            
+            <p><strong>Description:</strong> Closes and reopens the application being tested, resetting its state to initial launch conditions.</p>
+            
+            <p><strong>Examples:</strong></p>
+            
+            <p>1. Relaunch the app to reset its state:</p>
+            <div class="command-syntax">relaunch the app</div>
+            
+            <hr>
+            
+            <h2 id="restore-the-app-to-the-foreground">Restore the App to the foreground</h2>
+            
+            <p><strong>Supported Platform(s):</strong> MOBILE</p>
+            
+            <p><strong>Syntax:</strong></p>
+            
+            <div class="command-syntax">restore the app to the foreground</div>
+            
+            <p><strong>Description:</strong> Brings the application back to the foreground if it was running in the background.</p>
+            
+            <p><strong>Examples:</strong></p>
+            
+            <p>1. Restore the app after checking a notification:</p>
+            <div class="command-syntax">restore the app to the foreground</div>
+            
+            <hr>
+            
+            <h2 id="go-back">Go Back</h2>
+            
+            <p><strong>Supported Platform(s):</strong> WEB, MOBILE</p>
+            
+            <p><strong>Syntax:</strong></p>
+            
+            <div class="command-syntax">go back</div>
+            
+            <p><strong>Description:</strong> Simulates pressing the back button or navigating to the previous screen in the application.</p>
+            
+            <p><strong>Examples:</strong></p>
+            
+            <p>1. Navigate back to the previous screen:</p>
+            <div class="command-syntax">go back</div>
+            
+            <hr>
+            
+            <h2 id="go-home">Go Home</h2>
+            
+            <p><strong>Supported Platform(s):</strong> MOBILE</p>
+            
+            <p><strong>Syntax:</strong></p>
+            
+            <div class="command-syntax">go home</div>
+            
+            <p><strong>Description:</strong> Simulates pressing the home button on a mobile device, minimizing the application.</p>
+            
+            <p><strong>Examples:</strong></p>
+            
+            <p>1. Minimize the app by going to the home screen:</p>
+            <div class="command-syntax">go home</div>
+            
+            <hr>
+            
+            <h2 id="read-value">Read Value</h2>
+            
+            <p><strong>Supported Platform(s):</strong> WEB, MOBILE</p>
+            
+            <p><strong>Syntax:</strong></p>
+            
+            <div class="command-syntax">read value of [(2nd|3rd)] &lt;string&gt; [and save it as &lt;variable&gt;]</div>
+            
+            <p><strong>Description:</strong> Reads the text or value from a specified element and optionally stores it in a variable for later use.</p>
+            
+            <p><strong>Examples:</strong></p>
+            
+            <p>1. Read the value of a price label:</p>
+            <div class="command-syntax">read value of "Total Price" and save it as "price"</div>
+            
+            <p>2. Read the value of the second error message:</p>
+            <div class="command-syntax">read value of 2nd "Error" and save it as "errorMessage"</div>
+            
+            <hr>
+            
+            <h2 id="wait">Wait</h2>
+            
+            <p><strong>Supported Platform(s):</strong> WEB, MOBILE</p>
+            
+            <p><strong>Syntax:</strong></p>
+            
+            <div class="command-syntax">wait [for] [&lt;seconds&gt; seconds|&lt;string&gt; to (appear|disappear)]</div>
+            
+            <p><strong>Description:</strong> Pauses test execution either for a specified number of seconds or until a specific element appears or disappears from the screen.</p>
+            
+            <p><strong>Examples:</strong></p>
+            
+            <p>1. Wait for 5 seconds:</p>
+            <div class="command-syntax">wait for 5 seconds</div>
+            
+            <p>2. Wait for a loading indicator to disappear:</p>
+            <div class="command-syntax">wait for "Loading..." to disappear</div>
+            
+            <p>3. Wait for a success message to appear:</p>
+            <div class="command-syntax">wait for "Success" to appear</div>
+            
+            <hr>
+            
+            <h2 id="check">Check</h2>
+            
+            <p><strong>Supported Platform(s):</strong> WEB, MOBILE</p>
+            
+            <p><strong>Syntax:</strong></p>
+            
+            <div class="command-syntax">check [if] [&lt;string&gt; (exists|does not exist|contains &lt;text&gt;|equals &lt;text&gt;)]</div>
+            
+            <p><strong>Description:</strong> Verifies that a specified condition is true, such as the existence of an element or the content of an element matching expected text.</p>
+            
+            <p><strong>Examples:</strong></p>
+            
+            <p>1. Check if an element exists:</p>
+            <div class="command-syntax">check if "Submit Button" exists</div>
+            
+            <p>2. Check if an element contains specific text:</p>
+            <div class="command-syntax">check if "Error Message" contains "Invalid input"</div>
+            
+            <p>3. Check if an element's text exactly matches expected value:</p>
+            <div class="command-syntax">check if "Total" equals "$99.99"</div>
+            
+            <hr>
+            
+            <h2 id="api-commands">API Commands</h2>
+            
+            <p><strong>Supported Platform(s):</strong> WEB, MOBILE</p>
+            
+            <p><strong>Syntax:</strong></p>
+            
+            <div class="command-syntax">send (GET|POST|PUT|DELETE) request to "&lt;url&gt;" [with body &lt;json&gt;] [and save response as &lt;variable&gt;]</div>
+            
+            <p><strong>Description:</strong> Sends HTTP requests to specified endpoints, optionally with a JSON body, and can save the response for later use in the test.</p>
+            
+            <p><strong>Examples:</strong></p>
+            
+            <p>1. Send a GET request:</p>
+            <div class="command-syntax">send GET request to "https://api.example.com/users" and save response as "users"</div>
+            
+            <p>2. Send a POST request with a JSON body:</p>
+            <div class="command-syntax">send POST request to "https://api.example.com/login" with body {\"username\": \"testuser\", \"password\": \"password123\"} and save response as "loginResponse"</div>
+            
+            <hr>
+            
+            <h2 id="conditional-executions">Conditional Executions</h2>
+            
+            <p><strong>Supported Platform(s):</strong> WEB, MOBILE</p>
+            
+            <p><strong>Syntax:</strong></p>
+            
+            <div class="command-syntax">if &lt;condition&gt; then
+  &lt;commands&gt;
+[else
+  &lt;commands&gt;]
+endif</div>
+            
+            <p><strong>Description:</strong> Executes different commands based on whether a specified condition is true or false, allowing for branching logic in test scripts.</p>
+            
+            <p><strong>Examples:</strong></p>
+            
+            <p>1. Basic conditional execution:</p>
+            <div class="command-syntax">if "Error Message" exists then
+  read value of "Error Message" and save it as "errorText"
+else
+  click "Continue"
+endif</div>
+            
+            <p>2. Conditional execution with variable comparison:</p>
+            <div class="command-syntax">if variable "status" equals "success" then
+  click "Complete Order"
+else
+  click "Retry"
+endif</div>
+            
+            <hr>
+            
+            <h2 id="database-commands">Database Commands</h2>
+            
+            <p><strong>Supported Platform(s):</strong> WEB, MOBILE</p>
+            
+            <p><strong>Syntax:</strong></p>
+            
+            <div class="command-syntax">execute query "&lt;sql_query&gt;" on database "&lt;connection_string&gt;" [and save result as &lt;variable&gt;]</div>
+            
+            <p><strong>Description:</strong> Executes SQL queries against a specified database and optionally stores the results for use in subsequent test steps.</p>
+            
+            <p><strong>Examples:</strong></p>
+            
+            <p>1. Execute a SELECT query and save the results:</p>
+            <div class="command-syntax">execute query "SELECT * FROM users WHERE email='test@example.com'" on database "jdbc:mysql://localhost:3306/testdb" and save result as "userData"</div>
+            
+            <p>2. Execute an UPDATE query:</p>
+            <div class="command-syntax">execute query "UPDATE products SET stock=100 WHERE id=1234" on database "jdbc:mysql://localhost:3306/inventory"</div>
+            
+            <hr>
+            
+            <h2 id="kafka-eventing-commands">Kafka Eventing Commands</h2>
+            
+            <p><strong>Supported Platform(s):</strong> WEB, MOBILE</p>
+            
+            <p><strong>Syntax:</strong></p>
+            
+            <div class="command-syntax">send message "&lt;message&gt;" to kafka topic "&lt;topic&gt;" [with key "&lt;key&gt;"]</div>
+            
+            <p><strong>Description:</strong> Publishes messages to Kafka topics, optionally with a specified key, to test event-driven architectures and message processing.</p>
+            
+            <p><strong>Examples:</strong></p>
+            
+            <p>1. Send a simple message to a Kafka topic:</p>
+            <div class="command-syntax">send message "{\"event\": \"user_login\", \"userId\": \"12345\"}" to kafka topic "user-events"</div>
+            
+            <p>2. Send a message with a specific key:</p>
+            <div class="command-syntax">send message "{\"orderId\": \"ORD-9876\", \"status\": \"shipped\"}" to kafka topic "order-updates" with key "ORD-9876"</div>
+            
+            <hr>
+            
+            <h2 id="string-operations">String Operations</h2>
+            
+            <p><strong>Supported Platform(s):</strong> WEB, MOBILE</p>
+            
+            <p><strong>Syntax:</strong></p>
+            
+            <div class="command-syntax">perform &lt;operation&gt; on &lt;string&gt; [and save result as &lt;variable&gt;]</div>
+            
+            <p><strong>Description:</strong> Performs various string manipulation operations such as substring extraction, case conversion, or pattern matching, and optionally saves the result.</p>
+            
+            <p><strong>Examples:</strong></p>
+            
+            <p>1. Extract a substring:</p>
+            <div class="command-syntax">perform substring from 0 to 5 on variable "fullText" and save result as "shortText"</div>
+            
+            <p>2. Convert to uppercase:</p>
+            <div class="command-syntax">perform uppercase on variable "username" and save result as "uppercaseUsername"</div>
+            
+            <p>3. Extract using regex:</p>
+            <div class="command-syntax">perform extract pattern "[0-9]+" on variable "orderConfirmation" and save result as "orderNumber"</div>
+            
+            <hr>
+            
+            <h2 id="date-operations">Date Operations</h2>
+            
+            <p><strong>Supported Platform(s):</strong> WEB, MOBILE</p>
+            
+            <p><strong>Syntax:</strong></p>
+            
+            <div class="command-syntax">calculate date [&lt;operation&gt;] [and save result as &lt;variable&gt;]</div>
+            
+            <p><strong>Description:</strong> Performs date calculations such as adding days to the current date, formatting dates, or comparing date values.</p>
+            
+            <p><strong>Examples:</strong></p>
+            
+            <p>1. Get tomorrow's date:</p>
+            <div class="command-syntax">calculate date "current + 1 day" in format "MM/dd/yyyy" and save result as "tomorrow"</div>
+            
+            <p>2. Get the first day of next month:</p>
+            <div class="command-syntax">calculate date "current month + 1 month, day 1" in format "yyyy-MM-dd" and save result as "nextMonthStart"</div>
+            
+            <hr>
+            
+            <h2 id="user-defined-subroutines">User-Defined Subroutines</h2>
+            
+            <p><strong>Supported Platform(s):</strong> WEB, MOBILE</p>
+            
+            <p><strong>Syntax:</strong></p>
+            
+            <div class="command-syntax">define subroutine "&lt;name&gt;"
+  &lt;commands&gt;
+end subroutine
+
+call subroutine "&lt;name&gt;" [with parameters &lt;param_list&gt;]</div>
+            
+            <p><strong>Description:</strong> Allows the creation and execution of reusable blocks of commands, optionally with parameters, to promote code reuse and maintainability.</p>
+            
+            <p><strong>Examples:</strong></p>
+            
+            <p>1. Define and call a simple subroutine:</p>
+            <div class="command-syntax">define subroutine "login"
+  enter "testuser" into "Username"
+  enter "password123" into "Password"
+  click "Login"
+  wait for "Dashboard" to appear
+end subroutine
+
+call subroutine "login"</div>
+            
+            <p>2. Define and call a parameterized subroutine:</p>
+            <div class="command-syntax">define subroutine "search_product"
+  enter parameter "product_name" into "Search"
+  click "Search Button"
+  wait for "Results" to appear
+end subroutine
+
+call subroutine "search_product" with parameters {\"product_name\": \"Smartphone\"}</div>
+            
+            <hr>
+            
+            <h2 id="system-variables">System Variables</h2>
+            
+            <p><strong>Supported Platform(s):</strong> WEB, MOBILE</p>
+            
+            <p><strong>Description:</strong> System variables are predefined variables that provide access to system information and configuration settings.</p>
+            
+            <p><strong>Available System Variables:</strong></p>
+            
+            <ul>
+              <li><code>$DEVICE_NAME</code>: The name of the current device being tested.</li>
+              <li><code>$PLATFORM</code>: The platform of the current device (Android, iOS, Web).</li>
+              <li><code>$OS_VERSION</code>: The operating system version of the current device.</li>
+              <li><code>$SCREEN_SIZE</code>: The screen resolution of the current device.</li>
+              <li><code>$CURRENT_DATE</code>: The current date in YYYY-MM-DD format.</li>
+              <li><code>$CURRENT_TIME</code>: The current time in HH:MM:SS format.</li>
+            </ul>
+            
+            <p><strong>Examples:</strong></p>
+            
+            <p>1. Use the current date in a test:</p>
+            <div class="command-syntax">enter $CURRENT_DATE into "Date Field"</div>
+            
+            <p>2. Check the platform in a conditional statement:</p>
+            <div class="command-syntax">if $PLATFORM equals "Android" then
+  click "Android Specific Button"
+else
+  click "iOS Button"
+endif</div>
+            
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer id="footer" class="footer">
+    <div class="container footer-top">
+      <div class="row gy-4">
+        <div class="col-lg-4 col-md-12 footer-about">
+          <a href="/nimble" class="logo d-flex align-items-center">
+            <span>NIMBLE Automation</span>
+          </a>
+          <p>Streamline your testing processes with our fully automated test framework designed for efficiency and ease of use.</p>
+          <div class="social-links d-flex mt-4">
+            <a href=""><i class="bi bi-twitter"></i></a>
+            <a href=""><i class="bi bi-facebook"></i></a>
+            <a href=""><i class="bi bi-instagram"></i></a>
+            <a href=""><i class="bi bi-linkedin"></i></a>
+          </div>
+        </div>
+
+        <div class="col-lg-4 col-md-12 footer-newsletter">
+          <h4>Our Newsletter</h4>
+          <p>Subscribe to our newsletter and receive the latest news about our products and services!</p>
+          <form action="/newsletter/subscribe" method="post" id="newsletterForm">
+            <div class="newsletter-form"><input type="email" name="email" required><input type="submit" value="Subscribe"></div>
+            <div class="loading" style="display: none;">Loading</div>
+            <div class="error-message"></div>
+            <div class="sent-message">Your subscription request has been sent. Thank you!</div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <div class="container copyright text-center mt-4">
+      <p>© <span>Copyright</span> <strong class="px-1 sitename">NIMBLE Automation</strong> <span>All Rights Reserved</span></p>
+      <div class="credits">
+        Designed by <a href="https://bootstrapmade.com/">BootstrapMade</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Scroll Top -->
+  <a href="#" id="scroll-top" class="scroll-top d-flex align-items-center justify-content-center"><i class="bi bi-arrow-up-short"></i></a>
+
+  <!-- Preloader -->
+  <div id="preloader">
+    <div></div>
+    <div></div>
+    <div></div>
+    <div></div>
+  </div>
+
+  <!-- Vendor JS Files -->
+  <script src="assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <script src="assets/vendor/aos/aos.js"></script>
+  <script src="assets/vendor/purecounter/purecounter_vanilla.js"></script>
+  <script src="assets/vendor/swiper/swiper-bundle.min.js"></script>
+  <script src="assets/vendor/glightbox/js/glightbox.min.js"></script>
+  <script src="assets/vendor/imagesloaded/imagesloaded.pkgd.min.js"></script>
+  <script src="assets/vendor/isotope-layout/isotope.pkgd.min.js"></script>
+
+  <!-- Main JS File -->
+  <script src="assets/js/main.js"></script>
+  
+  <!-- Add jQuery if not already included -->
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  
+  <!-- Newsletter handler script -->
+  <script src="assets/js/newsletter-handler.js"></script>
+</body>
+</html> 

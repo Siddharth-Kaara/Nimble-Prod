@@ -1,0 +1,1 @@
+web: gunicorn -w $(nproc) --timeout 120 server:app 
