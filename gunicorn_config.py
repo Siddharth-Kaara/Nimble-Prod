@@ -1,7 +1,7 @@
 import os
 import sys
 
-# Print diagnostic information first
+# Print diagnostic information
 print("\n=== Environment Information ===")
 print(f"Python version: {sys.version}")
 print(f"Current working directory: {os.getcwd()}")
@@ -10,9 +10,11 @@ print(f"- PORT: {os.getenv('PORT')}")
 print(f"- FLASK_ENV: {os.getenv('FLASK_ENV')}")
 print("===========================\n")
 
-# Bind configuration - using direct string instead of list
-bind = f"0.0.0.0:{os.getenv('PORT', '8000')}"
-print(f"Setting bind address to: {bind}")
+# Core configuration
+bind = "0.0.0.0:8000"  # Default binding
+if os.getenv("PORT"):
+    bind = f"0.0.0.0:{os.getenv('PORT')}"
+print(f"Binding to: {bind}")
 
 # Worker configuration
 workers = 4
@@ -21,12 +23,12 @@ worker_connections = 1000
 timeout = 30
 keepalive = 2
 
-# Logging
+# Logging configuration
 accesslog = "-"
 errorlog = "-"
 loglevel = "debug"
 
-# Additional settings to ensure proper binding
+# Security and performance
 preload_app = True
 forwarded_allow_ips = '*'
 
