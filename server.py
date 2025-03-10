@@ -99,14 +99,15 @@ def add_security_headers(response):
     # Content Security Policy
     csp = (
         "default-src 'self'; "
-        "script-src 'self' 'unsafe-inline' https://js.stripe.com https://code.jquery.com https://cdn.jsdelivr.net https://*.bootstrapcdn.com; "
+        "script-src 'self' 'unsafe-inline' https://js.stripe.com https://code.jquery.com https://cdn.jsdelivr.net https://*.bootstrapcdn.com https://oss.maxcdn.com; "
         "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net https://*.bootstrapcdn.com; "
         "font-src 'self' https://fonts.gstatic.com data:; "
-        "img-src 'self' data: https:; "
+        "img-src 'self' data: https: blob:; "
         "connect-src 'self' https://api.stripe.com; "
         "frame-src https://js.stripe.com; "
         "object-src 'none'; "
-        "base-uri 'self'"
+        "base-uri 'self'; "
+        "form-action 'self'"
     )
     
     # Add stricter CSP for Stripe-related endpoints
@@ -115,12 +116,23 @@ def add_security_headers(response):
         
     response.headers['Content-Security-Policy'] = csp
 
-    # Set correct MIME types for JavaScript and CSS files
-    if response.mimetype == 'application/json':
-        if request.path.endswith('.js'):
-            response.mimetype = 'application/javascript'
-        elif request.path.endswith('.css'):
-            response.mimetype = 'text/css'
+    # Set correct MIME types for all responses
+    if request.path.endswith('.js'):
+        response.mimetype = 'application/javascript'
+    elif request.path.endswith('.css'):
+        response.mimetype = 'text/css'
+    elif request.path.endswith('.png'):
+        response.mimetype = 'image/png'
+    elif request.path.endswith('.jpg') or request.path.endswith('.jpeg'):
+        response.mimetype = 'image/jpeg'
+    elif request.path.endswith('.svg'):
+        response.mimetype = 'image/svg+xml'
+    elif request.path.endswith('.woff'):
+        response.mimetype = 'font/woff'
+    elif request.path.endswith('.woff2'):
+        response.mimetype = 'font/woff2'
+    elif request.path.endswith('.ttf'):
+        response.mimetype = 'font/ttf'
             
     return response
 
@@ -212,32 +224,38 @@ def serve_viom():
     return send_from_directory("viom-website-main", "index.html")
 
 @app.route("/viom/<path:path>")
-@limiter.exempt  # Exempt from rate limiting
+@limiter.exempt
 def serve_viom_assets(path):
+    """Serve Viom-specific assets and handle invalid paths"""
     try:
         if path.startswith("assets/"):
             log_info(f"Serving Viom asset: {path}")
             return send_from_directory("viom-website-main", path)
         else:
-            # This is an invalid path, redirect to home
             log_info(f"Invalid Viom path requested: {path}, redirecting to home")
             return redirect("/")
     except Exception as e:
         log_error(f"Failed to serve Viom asset {path}: {str(e)}")
-        return jsonify({"error": "Asset not found"}), 404
+        if request.headers.get('Accept', '').startswith('application/json'):
+            return jsonify({"error": "Asset not found"}), 404
+        return redirect("/")
 
 @app.route("/assets/<path:path>")
-@limiter.exempt  # Exempt from rate limiting
+@limiter.exempt
 def serve_assets(path):
-    # Try serving from viom-website-main first, then fallback to public
+    """Unified asset serving function for both Viom and Nimble assets"""
     try:
-        return send_from_directory("viom-website-main/assets", path, conditional=True)
-    except Exception as e:
+        # Try Viom assets first
         try:
+            return send_from_directory("viom-website-main/assets", path, conditional=True)
+        except:
+            # Try Nimble assets next
             return send_from_directory("public/assets", path, conditional=True)
-        except Exception as e:
-            log_error(f"Failed to serve asset {path}: {str(e)}")
+    except Exception as e:
+        log_error(f"Failed to serve asset {path}: {str(e)}")
+        if request.headers.get('Accept', '').startswith('application/json'):
             return jsonify({"error": "Asset not found"}), 404
+        return redirect("/")  # Redirect to home for browser requests
 
 @app.route("/nimble")
 @app.route("/nimble/")
@@ -247,43 +265,23 @@ def serve_nimble():
     return send_from_directory("public", "index.html")
 
 @app.route("/nimble/<path:path>")
-@limiter.exempt  # Exempt from rate limiting
+@limiter.exempt
 def serve_nimble_assets(path):
-    # Define valid paths
+    """Serve Nimble-specific assets and handle special paths"""
     valid_paths = ["doc", "success", "cancel", "thankyou"]
     
-    # Check if this is a valid path or an asset request
-    if path in valid_paths or path.startswith("assets/"):
-        log_info(f"Serving Nimble asset: {path}")
-        return send_from_directory("public", path)
-    else:
-        # This is an invalid path, serve the 404 page
-        log_info(f"Invalid Nimble path requested: {path}, serving 404 page")
+    try:
+        if path in valid_paths:
+            return send_from_directory("public", f"{path}.html")
+        elif path.startswith("assets/"):
+            log_info(f"Serving Nimble asset: {path}")
+            return send_from_directory("public", path)
+        else:
+            log_info(f"Invalid Nimble path requested: {path}, serving 404 page")
+            return send_from_directory("public", "404.html"), 404
+    except Exception as e:
+        log_error(f"Failed to serve Nimble asset/page {path}: {str(e)}")
         return send_from_directory("public", "404.html"), 404
-
-@app.route("/nimble/doc")
-@limiter.exempt
-def serve_nimble_doc():
-    log_info("Serving Nimble documentation page")
-    return send_from_directory("public", "doc.html")
-
-@app.route("/nimble/success")
-@limiter.exempt
-def serve_nimble_success():
-    log_info("Serving Nimble success page")
-    return send_from_directory("public", "success.html")
-
-@app.route("/nimble/cancel")
-@limiter.exempt
-def serve_nimble_cancel():
-    log_info("Serving Nimble cancel page")
-    return send_from_directory("public", "cancel.html")
-
-@app.route("/nimble/thankyou")
-@limiter.exempt
-def serve_nimble_thankyou():
-    log_info("Serving Nimble thank you page")
-    return send_from_directory("public", "thankyou.html")
 
 # Get Stripe Publishable Key
 @app.route("/get-stripe-key", methods=["GET"])
@@ -578,3 +576,4 @@ if __name__ == "__main__":
     else:
         # In production, Gunicorn will handle the app
         app.run(host="0.0.0.0", port=port, debug=False)
+
