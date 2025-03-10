@@ -289,6 +289,17 @@ def serve_assets(path):
         log_error(f"Error serving asset {path}: {str(e)}")
         return "File not found", 404
 
+@app.route("/viom-website-main/assets/<path:path>")
+@limiter.exempt
+def serve_viom_assets_direct(path):
+    """Serve assets directly from viom-website-main/assets path"""
+    log_info(f"Serving viom asset directly: {path}")
+    try:
+        return send_from_directory("viom-website-main/assets", path, mimetype=get_mime_type(path))
+    except Exception as e:
+        log_error(f"Error serving viom asset directly {path}: {str(e)}")
+        return "File not found", 404
+
 # Nimble routes (these should stay as they are)
 @app.route("/nimble")
 @app.route("/nimble/")
