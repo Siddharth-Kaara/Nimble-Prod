@@ -275,8 +275,9 @@ def serve_static_file(directory, filepath, fallback_directory=None):
 @app.route("/")
 @limiter.exempt
 def serve_index():
-    """Serve the main Viom index page"""
-    return send_from_directory("viom-website-main", "index.html")
+    """Serve the main Viom index.html"""
+    log_info("Serving Viom main index.html")
+    return send_from_directory("viom-website-main", "index.html", mimetype='text/html')
 
 @app.route("/assets/<path:path>")
 @limiter.exempt
