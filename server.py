@@ -97,7 +97,7 @@ def add_security_headers(response):
     # Prevent clickjacking
     response.headers['X-Frame-Options'] = 'SAMEORIGIN'
     # Content Security Policy
-    response.headers['Content-Security-Policy'] = (
+    csp = (
         "default-src 'self'; "
         "script-src 'self' 'unsafe-inline' https://js.stripe.com https://code.jquery.com https://cdn.jsdelivr.net https://*.bootstrapcdn.com; "
         "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net https://*.bootstrapcdn.com; "
@@ -108,6 +108,12 @@ def add_security_headers(response):
         "object-src 'none'; "
         "base-uri 'self'"
     )
+    
+    # Add stricter CSP for Stripe-related endpoints
+    if request.path in ['/get-stripe-key', '/get-product-ids', '/create-checkout-session']:
+        csp = csp + "; frame-ancestors 'none'"
+        
+    response.headers['Content-Security-Policy'] = csp
 
     # Set correct MIME types for JavaScript and CSS files
     if response.mimetype == 'application/json':
@@ -193,41 +199,55 @@ def handle_exception(e):
 
 # Serve static files
 @app.route("/")
+@limiter.exempt
 def serve_index():
     log_info("Serving main index.html")
     return send_from_directory("viom-website-main", "index.html")
 
 @app.route("/viom")
 @app.route("/viom/")
+@limiter.exempt
 def serve_viom():
     log_info("Serving Viom product page")
     return send_from_directory("viom-website-main", "index.html")
 
 @app.route("/viom/<path:path>")
+@limiter.exempt  # Exempt from rate limiting
 def serve_viom_assets(path):
-    if path.startswith("assets/"):
-        log_info(f"Serving Viom asset: {path}")
-        return send_from_directory("viom-website-main", path)
-    else:
-        # This is an invalid path, redirect to home
-        log_info(f"Invalid Viom path requested: {path}, redirecting to home")
-        return redirect("/")
+    try:
+        if path.startswith("assets/"):
+            log_info(f"Serving Viom asset: {path}")
+            return send_from_directory("viom-website-main", path)
+        else:
+            # This is an invalid path, redirect to home
+            log_info(f"Invalid Viom path requested: {path}, redirecting to home")
+            return redirect("/")
+    except Exception as e:
+        log_error(f"Failed to serve Viom asset {path}: {str(e)}")
+        return jsonify({"error": "Asset not found"}), 404
 
 @app.route("/assets/<path:path>")
+@limiter.exempt  # Exempt from rate limiting
 def serve_assets(path):
     # Try serving from viom-website-main first, then fallback to public
     try:
         return send_from_directory("viom-website-main/assets", path, conditional=True)
-    except:
-        return send_from_directory("public/assets", path, conditional=True)
+    except Exception as e:
+        try:
+            return send_from_directory("public/assets", path, conditional=True)
+        except Exception as e:
+            log_error(f"Failed to serve asset {path}: {str(e)}")
+            return jsonify({"error": "Asset not found"}), 404
 
 @app.route("/nimble")
 @app.route("/nimble/")
+@limiter.exempt
 def serve_nimble():
     log_info("Serving Nimble product page")
     return send_from_directory("public", "index.html")
 
 @app.route("/nimble/<path:path>")
+@limiter.exempt  # Exempt from rate limiting
 def serve_nimble_assets(path):
     # Define valid paths
     valid_paths = ["doc", "success", "cancel", "thankyou"]
@@ -242,33 +262,39 @@ def serve_nimble_assets(path):
         return send_from_directory("public", "404.html"), 404
 
 @app.route("/nimble/doc")
+@limiter.exempt
 def serve_nimble_doc():
     log_info("Serving Nimble documentation page")
     return send_from_directory("public", "doc.html")
 
 @app.route("/nimble/success")
+@limiter.exempt
 def serve_nimble_success():
     log_info("Serving Nimble success page")
     return send_from_directory("public", "success.html")
 
 @app.route("/nimble/cancel")
+@limiter.exempt
 def serve_nimble_cancel():
     log_info("Serving Nimble cancel page")
     return send_from_directory("public", "cancel.html")
 
 @app.route("/nimble/thankyou")
+@limiter.exempt
 def serve_nimble_thankyou():
     log_info("Serving Nimble thank you page")
     return send_from_directory("public", "thankyou.html")
 
 # Get Stripe Publishable Key
 @app.route("/get-stripe-key", methods=["GET"])
+@limiter.limit("10 per minute")  # Add rate limiting
 def get_stripe_key():
     log_info("Getting Stripe publishable key")
     return jsonify({"publicKey": STRIPE_PUBLISHABLE_KEY})
 
 # Get product IDs
 @app.route("/get-product-ids", methods=["GET"])
+@limiter.limit("10 per minute")  # Add rate limiting
 def get_product_ids():
     log_info("Fetching product IDs...")
     product_id = os.getenv("CRYPTLEX_PRODUCT_ID")
@@ -441,6 +467,7 @@ def newsletter_subscribe():
     return process_newsletter_subscription()
 
 @app.route("/<path:invalid_path>")
+@limiter.exempt
 def serve_root_404(invalid_path):
     # Skip specific paths that are already handled
     if invalid_path.startswith("public/") or invalid_path.startswith("assets/"):
@@ -551,4 +578,3 @@ if __name__ == "__main__":
     else:
         # In production, Gunicorn will handle the app
         app.run(host="0.0.0.0", port=port, debug=False)
-
