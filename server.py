@@ -284,7 +284,7 @@ def serve_index():
 def serve_assets(path):
     """Serve assets from viom-website-main/assets"""
     try:
-        return send_from_directory("viom-website-main/assets", path)
+        return send_from_directory("viom-website-main/assets", path, mimetype=get_mime_type(path))
     except Exception as e:
         log_error(f"Error serving asset {path}: {str(e)}")
         return "File not found", 404
@@ -294,35 +294,40 @@ def serve_assets(path):
 @app.route("/nimble/")
 def serve_nimble():
     """Serve Nimble product page"""
-    return send_from_directory("public", "index.html")
+    log_info("Serving Nimble product page")
+    return send_from_directory("public", "index.html", mimetype='text/html')
 
 @app.route("/nimble/<path:path>")
 def serve_nimble_assets(path):
     """Serve Nimble assets"""
     valid_paths = ["doc", "success", "cancel", "thankyou"]
     if path in valid_paths or path.startswith("assets/"):
-        return send_from_directory("public", path)
-    return send_from_directory("public", "404.html"), 404
+        if path.endswith('.html') or path in valid_paths:
+            return send_from_directory("public", path, mimetype='text/html')
+        else:
+            # For non-HTML files, use the appropriate MIME type
+            return send_from_directory("public", path, mimetype=get_mime_type(path))
+    return send_from_directory("public", "404.html", mimetype='text/html'), 404
 
 @app.route("/nimble/doc")
 def serve_nimble_doc():
     log_info("Serving Nimble documentation page")
-    return send_from_directory("public", "doc.html")
+    return send_from_directory("public", "doc.html", mimetype='text/html')
 
 @app.route("/nimble/success")
 def serve_nimble_success():
     log_info("Serving Nimble success page")
-    return send_from_directory("public", "success.html")
+    return send_from_directory("public", "success.html", mimetype='text/html')
 
 @app.route("/nimble/cancel")
 def serve_nimble_cancel():
     log_info("Serving Nimble cancel page")
-    return send_from_directory("public", "cancel.html")
+    return send_from_directory("public", "cancel.html", mimetype='text/html')
 
 @app.route("/nimble/thankyou")
 def serve_nimble_thankyou():
     log_info("Serving Nimble thank you page")
-    return send_from_directory("public", "thankyou.html")
+    return send_from_directory("public", "thankyou.html", mimetype='text/html')
 
 # Get Stripe Publishable Key
 @app.route("/get-stripe-key", methods=["GET"])
@@ -510,10 +515,10 @@ def serve_other(path):
     try:
         # First try viom-website-main
         if os.path.exists(os.path.join("viom-website-main", path)):
-            return send_from_directory("viom-website-main", path)
+            return send_from_directory("viom-website-main", path, mimetype=get_mime_type(path))
         # Then try public
         elif os.path.exists(os.path.join("public", path)):
-            return send_from_directory("public", path)
+            return send_from_directory("public", path, mimetype=get_mime_type(path))
         # If neither exists, redirect to home
         return redirect("/")
     except Exception:
