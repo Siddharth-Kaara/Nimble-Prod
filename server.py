@@ -131,14 +131,9 @@ def add_security_headers(response):
         "object-src 'none'; "
         "base-uri 'self'"
     )
-
-    # Set correct MIME types for JavaScript and CSS files
-    if response.mimetype == 'application/json':
-        if request.path.endswith('.js'):
-            response.mimetype = 'application/javascript'
-        elif request.path.endswith('.css'):
-            response.mimetype = 'text/css'
-            
+    
+    # DO NOT override MIME types here - they should be set by the route handlers
+    
     return response
 
 # Configure CORS
@@ -283,22 +278,53 @@ def serve_index():
 @limiter.exempt
 def serve_assets(path):
     """Serve assets from viom-website-main/assets"""
+    log_info(f"Serving asset: {path}")
+    asset_path = os.path.join("viom-website-main/assets", path)
+    
+    if not os.path.exists(asset_path):
+        log_error(f"Asset not found: {asset_path}")
+        return send_from_directory("public", "404.html", mimetype='text/html'), 404
+    
     try:
-        return send_from_directory("viom-website-main/assets", path, mimetype=get_mime_type(path))
+        mime_type = get_mime_type(path)
+        log_info(f"Serving {path} with MIME type: {mime_type}")
+        response = send_from_directory("viom-website-main/assets", path, mimetype=mime_type)
+        
+        # Add caching headers
+        response.cache_control.max_age = 31536000  # 1 year
+        response.cache_control.public = True
+        response.headers['Vary'] = 'Accept-Encoding'
+        
+        return response
     except Exception as e:
         log_error(f"Error serving asset {path}: {str(e)}")
-        return "File not found", 404
+        return send_from_directory("public", "404.html", mimetype='text/html'), 404
 
 @app.route("/viom-website-main/assets/<path:path>")
 @limiter.exempt
 def serve_viom_assets_direct(path):
     """Serve assets directly from viom-website-main/assets path"""
     log_info(f"Serving viom asset directly: {path}")
+    asset_path = os.path.join("viom-website-main/assets", path)
+    
+    if not os.path.exists(asset_path):
+        log_error(f"Viom asset not found: {asset_path}")
+        return send_from_directory("public", "404.html", mimetype='text/html'), 404
+    
     try:
-        return send_from_directory("viom-website-main/assets", path, mimetype=get_mime_type(path))
+        mime_type = get_mime_type(path)
+        log_info(f"Serving viom asset {path} with MIME type: {mime_type}")
+        response = send_from_directory("viom-website-main/assets", path, mimetype=mime_type)
+        
+        # Add caching headers
+        response.cache_control.max_age = 31536000  # 1 year
+        response.cache_control.public = True
+        response.headers['Vary'] = 'Accept-Encoding'
+        
+        return response
     except Exception as e:
-        log_error(f"Error serving viom asset directly {path}: {str(e)}")
-        return "File not found", 404
+        log_error(f"Error serving viom asset {path}: {str(e)}")
+        return send_from_directory("public", "404.html", mimetype='text/html'), 404
 
 # Nimble routes (these should stay as they are)
 @app.route("/nimble")
@@ -506,7 +532,7 @@ def create_checkout_session():
 @limiter.limit("5 per minute")
 def handle_contact_form_python():
     """
-    Handle the contact form submission with a more Python-like endpoint
+    Handle contact form submission with a more Python-like endpoint
     """
     from contact_form import process_contact_form
     return process_contact_form()
@@ -525,15 +551,21 @@ def serve_other(path):
     """Handle all other paths"""
     try:
         # First try viom-website-main
-        if os.path.exists(os.path.join("viom-website-main", path)):
+        viom_path = os.path.join("viom-website-main", path)
+        if os.path.exists(viom_path):
             return send_from_directory("viom-website-main", path, mimetype=get_mime_type(path))
+        
         # Then try public
-        elif os.path.exists(os.path.join("public", path)):
+        public_path = os.path.join("public", path)
+        if os.path.exists(public_path):
             return send_from_directory("public", path, mimetype=get_mime_type(path))
-        # If neither exists, redirect to home
-        return redirect("/")
-    except Exception:
-        return redirect("/")
+        
+        # If neither exists, return a 404 instead of redirecting
+        log_info(f"File not found: {path}")
+        return send_from_directory("public", "404.html", mimetype='text/html'), 404
+    except Exception as e:
+        log_error(f"Error serving path {path}: {str(e)}")
+        return send_from_directory("public", "404.html", mimetype='text/html'), 404
 
 @app.route("/redis-test")
 def test_redis_connection():
@@ -588,6 +620,57 @@ def test_redis_connection():
             "message": str(e),
             "storage_type": limiter.storage.__class__.__name__
         }), 500
+
+@app.route("/debug/file-check")
+def debug_file_check():
+    """Debug endpoint to check file structure"""
+    result = {
+        "status": "success",
+        "file_checks": {}
+    }
+    
+    # Check important CSS files
+    css_files = [
+        "assets/css/bootstrap.min.css",
+        "assets/css/style.css",
+        "assets/css/font-awesome.min.css"
+    ]
+    
+    # Check important JS files
+    js_files = [
+        "assets/js/jquery.min.js",
+        "assets/js/bootstrap.min.js",
+        "assets/js/script.js"
+    ]
+    
+    # Check all files
+    for file_path in css_files + js_files:
+        full_path = os.path.join("viom-website-main", file_path)
+        exists = os.path.exists(full_path)
+        result["file_checks"][file_path] = {
+            "exists": exists,
+            "full_path": full_path,
+            "mime_type": get_mime_type(file_path) if exists else None
+        }
+    
+    # Check directory structure
+    dirs_to_check = [
+        "viom-website-main",
+        "viom-website-main/assets",
+        "viom-website-main/assets/css",
+        "viom-website-main/assets/js",
+        "viom-website-main/assets/images"
+    ]
+    
+    result["directories"] = {}
+    for dir_path in dirs_to_check:
+        exists = os.path.isdir(dir_path)
+        result["directories"][dir_path] = {
+            "exists": exists,
+            "contents": os.listdir(dir_path)[:10] if exists else None  # List first 10 items
+        }
+    
+    return jsonify(result)
 
 if __name__ == "__main__":
     required_env_vars = [
