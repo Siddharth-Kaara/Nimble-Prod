@@ -148,6 +148,11 @@ CORS(app, resources={
 # Add explicit CORS configuration
 @app.after_request
 def after_request(response):
+    """Process response after each request"""
+    # Log the request and response
+    log_info(f"{request.method} {request.path} - {response.status_code}")
+    
+    # Handle CORS
     origin = request.headers.get('Origin')
     allowed_origins = os.getenv('ALLOWED_ORIGINS', '*').split(',')
     
@@ -158,6 +163,29 @@ def after_request(response):
         
     response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
     response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
+    
+    # Ensure proper MIME types for static files
+    if request.path.startswith('/assets/') or request.path.startswith('/viom-website-main/assets/'):
+        file_path = request.path.split('?')[0]  # Remove query parameters if any
+        
+        if file_path.endswith('.css') and response.status_code == 200:
+            response.mimetype = 'text/css'
+            log_info(f"Enforcing MIME type for CSS: {file_path}")
+        
+        elif file_path.endswith('.js') and response.status_code == 200:
+            response.mimetype = 'application/javascript'
+            log_info(f"Enforcing MIME type for JS: {file_path}")
+        
+        elif (file_path.endswith('.jpg') or file_path.endswith('.jpeg')) and response.status_code == 200:
+            response.mimetype = 'image/jpeg'
+        
+        elif file_path.endswith('.png') and response.status_code == 200:
+            response.mimetype = 'image/png'
+    
+    # Log response headers for debugging
+    if request.path.startswith('/assets/') or request.path.startswith('/viom-website-main/assets/'):
+        log_info(f"Response headers for {request.path}: Content-Type: {response.headers.get('Content-Type')}")
+    
     return response
 
 # Set debug mode based on environment
@@ -669,6 +697,34 @@ def debug_file_check():
             "exists": exists,
             "contents": os.listdir(dir_path)[:10] if exists else None  # List first 10 items
         }
+    
+    return jsonify(result)
+
+@app.route("/debug/mime-check")
+def debug_mime_check():
+    """Debug endpoint to check MIME types of specific files"""
+    result = {
+        "status": "success",
+        "mime_checks": {}
+    }
+    
+    # Test files with different extensions
+    test_files = [
+        "/assets/css/bootstrap.min.css",
+        "/assets/js/jquery.min.js",
+        "/assets/images/logo.jpg",
+        "/assets/css/style.css"
+    ]
+    
+    # Make internal requests to each file
+    with app.test_client() as client:
+        for file_path in test_files:
+            response = client.get(file_path)
+            result["mime_checks"][file_path] = {
+                "status_code": response.status_code,
+                "content_type": response.content_type,
+                "headers": dict(response.headers)
+            }
     
     return jsonify(result)
 
