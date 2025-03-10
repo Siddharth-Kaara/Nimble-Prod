@@ -48,36 +48,13 @@ app.logger.setLevel(logging.INFO)
 
 # Initialize rate limiter
 storage_uri = os.getenv('REDIS_URL', 'memory://') if is_production else 'memory://'
-
-def is_health_check():
-    """Check if the request is a health check from Render"""
-    user_agent = request.headers.get('User-Agent', '').lower()
-    return 'go-http-client' in user_agent
-
-def rate_limit_exempt():
-    """Determine if the request should be exempt from rate limiting"""
-    # Exempt health checks
-    if is_health_check():
-        return True
-    
-    # Exempt static file requests
-    if request.path.startswith(('/assets/', '/public/', '/viom-website-main/')):
-        return True
-    
-    # Exempt development environment
-    if not is_production:
-        return True
-    
-    return False
-
 limiter = Limiter(
     get_remote_address,
     app=app,
+    default_limits=["1000 per day", "100 per hour"],  # Increased limits
     storage_uri=storage_uri,
     strategy="fixed-window",
-    default_limits=["1000 per day", "100 per hour"],
-    default_limits_exempt_when=rate_limit_exempt,
-    headers_enabled=True
+    default_limits_exempt_when=lambda: not is_production  # Disable rate limiting in development
 )
 
 if is_production and storage_uri == 'memory://':
@@ -131,9 +108,14 @@ def add_security_headers(response):
         "object-src 'none'; "
         "base-uri 'self'"
     )
-    
-    # DO NOT override MIME types here - they should be set by the route handlers
-    
+
+    # Set correct MIME types for JavaScript and CSS files
+    if response.mimetype == 'application/json':
+        if request.path.endswith('.js'):
+            response.mimetype = 'application/javascript'
+        elif request.path.endswith('.css'):
+            response.mimetype = 'text/css'
+            
     return response
 
 # Configure CORS
@@ -148,11 +130,6 @@ CORS(app, resources={
 # Add explicit CORS configuration
 @app.after_request
 def after_request(response):
-    """Process response after each request"""
-    # Log the request and response
-    log_info(f"{request.method} {request.path} - {response.status_code}")
-    
-    # Handle CORS
     origin = request.headers.get('Origin')
     allowed_origins = os.getenv('ALLOWED_ORIGINS', '*').split(',')
     
@@ -163,29 +140,6 @@ def after_request(response):
         
     response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
     response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
-    
-    # Ensure proper MIME types for static files
-    if request.path.startswith('/assets/') or request.path.startswith('/viom-website-main/assets/'):
-        file_path = request.path.split('?')[0]  # Remove query parameters if any
-        
-        if file_path.endswith('.css') and response.status_code == 200:
-            response.mimetype = 'text/css'
-            log_info(f"Enforcing MIME type for CSS: {file_path}")
-        
-        elif file_path.endswith('.js') and response.status_code == 200:
-            response.mimetype = 'application/javascript'
-            log_info(f"Enforcing MIME type for JS: {file_path}")
-        
-        elif (file_path.endswith('.jpg') or file_path.endswith('.jpeg')) and response.status_code == 200:
-            response.mimetype = 'image/jpeg'
-        
-        elif file_path.endswith('.png') and response.status_code == 200:
-            response.mimetype = 'image/png'
-    
-    # Log response headers for debugging
-    if request.path.startswith('/assets/') or request.path.startswith('/viom-website-main/assets/'):
-        log_info(f"Response headers for {request.path}: Content-Type: {response.headers.get('Content-Type')}")
-    
     return response
 
 # Set debug mode based on environment
@@ -218,10 +172,9 @@ if is_production:
 # Add error handlers
 @app.errorhandler(404)
 def page_not_found(e):
-    """Handle 404 errors with proper MIME type"""
     log_error(f"404 error: {request.path}")
     if request.path.startswith("/nimble/"):
-        return serve_static_file("public", "404.html")
+        return send_from_directory("public", "404.html"), 404
     return redirect("/")
 
 @app.errorhandler(500)
@@ -238,161 +191,75 @@ def handle_exception(e):
     log_error(f"Unhandled exception: {str(e)}")
     return jsonify({"error": "An unexpected error occurred"}), 500
 
-# Serve static files with proper MIME types
-def get_mime_type(path):
-    extension = path.lower().split('.')[-1]
-    mime_types = {
-        'js': 'application/javascript',
-        'css': 'text/css',
-        'png': 'image/png',
-        'jpg': 'image/jpeg',
-        'jpeg': 'image/jpeg',
-        'svg': 'image/svg+xml',
-        'woff': 'font/woff',
-        'woff2': 'font/woff2',
-        'ttf': 'font/ttf',
-        'ico': 'image/x-icon',
-        'html': 'text/html',
-        'json': 'application/json'
-    }
-    return mime_types.get(extension, 'application/octet-stream')
-
-def serve_static_file(directory, filepath, fallback_directory=None):
-    """
-    Serve a static file with proper MIME type handling and logging
-    """
-    log_info(f"Attempting to serve {filepath} from {directory}")
-    try:
-        if os.path.exists(os.path.join(directory, filepath)):
-            response = send_from_directory(directory, filepath, conditional=True)
-            mime_type = get_mime_type(filepath)
-            response.mimetype = mime_type
-            log_info(f"Serving {filepath} with MIME type: {mime_type}")
-            
-            # Add caching headers for static assets
-            response.cache_control.max_age = 31536000  # 1 year
-            response.cache_control.public = True
-            response.headers['Vary'] = 'Accept-Encoding'
-            
-            return response
-        elif fallback_directory and os.path.exists(os.path.join(fallback_directory, filepath)):
-            response = send_from_directory(fallback_directory, filepath, conditional=True)
-            mime_type = get_mime_type(filepath)
-            response.mimetype = mime_type
-            log_info(f"Serving {filepath} from fallback with MIME type: {mime_type}")
-            
-            # Add caching headers for static assets
-            response.cache_control.max_age = 31536000  # 1 year
-            response.cache_control.public = True
-            response.headers['Vary'] = 'Accept-Encoding'
-            
-            return response
-        else:
-            log_error(f"File not found: {filepath} in {directory} or {fallback_directory}")
-            return "File not found", 404
-    except Exception as e:
-        log_error(f"Error serving {filepath}: {str(e)}")
-        return "Error serving file", 500
-
-# Viom website routes
+# Serve static files
 @app.route("/")
-@limiter.exempt
 def serve_index():
-    """Serve the main Viom index.html"""
-    log_info("Serving Viom main index.html")
-    return send_from_directory("viom-website-main", "index.html", mimetype='text/html')
+    log_info("Serving main index.html")
+    return send_from_directory("viom-website-main", "index.html")
+
+@app.route("/viom")
+@app.route("/viom/")
+def serve_viom():
+    log_info("Serving Viom product page")
+    return send_from_directory("viom-website-main", "index.html")
+
+@app.route("/viom/<path:path>")
+def serve_viom_assets(path):
+    if path.startswith("assets/"):
+        log_info(f"Serving Viom asset: {path}")
+        return send_from_directory("viom-website-main", path)
+    else:
+        # This is an invalid path, redirect to home
+        log_info(f"Invalid Viom path requested: {path}, redirecting to home")
+        return redirect("/")
 
 @app.route("/assets/<path:path>")
-@limiter.exempt
 def serve_assets(path):
-    """Serve assets from viom-website-main/assets"""
-    log_info(f"Serving asset: {path}")
-    asset_path = os.path.join("viom-website-main/assets", path)
-    
-    if not os.path.exists(asset_path):
-        log_error(f"Asset not found: {asset_path}")
-        return send_from_directory("public", "404.html", mimetype='text/html'), 404
-    
+    # Try serving from viom-website-main first, then fallback to public
     try:
-        mime_type = get_mime_type(path)
-        log_info(f"Serving {path} with MIME type: {mime_type}")
-        response = send_from_directory("viom-website-main/assets", path, mimetype=mime_type)
-        
-        # Add caching headers
-        response.cache_control.max_age = 31536000  # 1 year
-        response.cache_control.public = True
-        response.headers['Vary'] = 'Accept-Encoding'
-        
-        return response
-    except Exception as e:
-        log_error(f"Error serving asset {path}: {str(e)}")
-        return send_from_directory("public", "404.html", mimetype='text/html'), 404
+        return send_from_directory("viom-website-main/assets", path, conditional=True)
+    except:
+        return send_from_directory("public/assets", path, conditional=True)
 
-@app.route("/viom-website-main/assets/<path:path>")
-@limiter.exempt
-def serve_viom_assets_direct(path):
-    """Serve assets directly from viom-website-main/assets path"""
-    log_info(f"Serving viom asset directly: {path}")
-    asset_path = os.path.join("viom-website-main/assets", path)
-    
-    if not os.path.exists(asset_path):
-        log_error(f"Viom asset not found: {asset_path}")
-        return send_from_directory("public", "404.html", mimetype='text/html'), 404
-    
-    try:
-        mime_type = get_mime_type(path)
-        log_info(f"Serving viom asset {path} with MIME type: {mime_type}")
-        response = send_from_directory("viom-website-main/assets", path, mimetype=mime_type)
-        
-        # Add caching headers
-        response.cache_control.max_age = 31536000  # 1 year
-        response.cache_control.public = True
-        response.headers['Vary'] = 'Accept-Encoding'
-        
-        return response
-    except Exception as e:
-        log_error(f"Error serving viom asset {path}: {str(e)}")
-        return send_from_directory("public", "404.html", mimetype='text/html'), 404
-
-# Nimble routes (these should stay as they are)
 @app.route("/nimble")
 @app.route("/nimble/")
 def serve_nimble():
-    """Serve Nimble product page"""
     log_info("Serving Nimble product page")
-    return send_from_directory("public", "index.html", mimetype='text/html')
+    return send_from_directory("public", "index.html")
 
 @app.route("/nimble/<path:path>")
 def serve_nimble_assets(path):
-    """Serve Nimble assets"""
+    # Define valid paths
     valid_paths = ["doc", "success", "cancel", "thankyou"]
+    
+    # Check if this is a valid path or an asset request
     if path in valid_paths or path.startswith("assets/"):
-        if path.endswith('.html') or path in valid_paths:
-            return send_from_directory("public", path, mimetype='text/html')
-        else:
-            # For non-HTML files, use the appropriate MIME type
-            return send_from_directory("public", path, mimetype=get_mime_type(path))
-    return send_from_directory("public", "404.html", mimetype='text/html'), 404
+        log_info(f"Serving Nimble asset: {path}")
+        return send_from_directory("public", path)
+    else:
+        # This is an invalid path, serve the 404 page
+        log_info(f"Invalid Nimble path requested: {path}, serving 404 page")
+        return send_from_directory("public", "404.html"), 404
 
 @app.route("/nimble/doc")
 def serve_nimble_doc():
     log_info("Serving Nimble documentation page")
-    return send_from_directory("public", "doc.html", mimetype='text/html')
+    return send_from_directory("public", "doc.html")
 
 @app.route("/nimble/success")
 def serve_nimble_success():
     log_info("Serving Nimble success page")
-    return send_from_directory("public", "success.html", mimetype='text/html')
+    return send_from_directory("public", "success.html")
 
 @app.route("/nimble/cancel")
 def serve_nimble_cancel():
     log_info("Serving Nimble cancel page")
-    return send_from_directory("public", "cancel.html", mimetype='text/html')
+    return send_from_directory("public", "cancel.html")
 
 @app.route("/nimble/thankyou")
 def serve_nimble_thankyou():
     log_info("Serving Nimble thank you page")
-    return send_from_directory("public", "thankyou.html", mimetype='text/html')
+    return send_from_directory("public", "thankyou.html")
 
 # Get Stripe Publishable Key
 @app.route("/get-stripe-key", methods=["GET"])
@@ -573,27 +440,20 @@ def newsletter_subscribe():
     from newsletter import process_newsletter_subscription
     return process_newsletter_subscription()
 
-# Catch-all route for other paths
-@app.route("/<path:path>")
-def serve_other(path):
-    """Handle all other paths"""
-    try:
-        # First try viom-website-main
-        viom_path = os.path.join("viom-website-main", path)
-        if os.path.exists(viom_path):
-            return send_from_directory("viom-website-main", path, mimetype=get_mime_type(path))
-        
-        # Then try public
-        public_path = os.path.join("public", path)
-        if os.path.exists(public_path):
-            return send_from_directory("public", path, mimetype=get_mime_type(path))
-        
-        # If neither exists, return a 404 instead of redirecting
-        log_info(f"File not found: {path}")
-        return send_from_directory("public", "404.html", mimetype='text/html'), 404
-    except Exception as e:
-        log_error(f"Error serving path {path}: {str(e)}")
-        return send_from_directory("public", "404.html", mimetype='text/html'), 404
+@app.route("/<path:invalid_path>")
+def serve_root_404(invalid_path):
+    # Skip specific paths that are already handled
+    if invalid_path.startswith("public/") or invalid_path.startswith("assets/"):
+        return send_from_directory(".", invalid_path)
+    
+    # For Nimble-related paths, use the Nimble 404 page
+    if invalid_path.startswith("nimble/"):
+        log_info(f"Invalid Nimble path requested: {invalid_path}, serving 404 page")
+        return send_from_directory("public", "404.html"), 404
+    
+    # For other paths, redirect to the main page
+    log_info(f"Invalid path requested: {invalid_path}, redirecting to main page")
+    return redirect("/")
 
 @app.route("/redis-test")
 def test_redis_connection():
@@ -649,85 +509,6 @@ def test_redis_connection():
             "storage_type": limiter.storage.__class__.__name__
         }), 500
 
-@app.route("/debug/file-check")
-def debug_file_check():
-    """Debug endpoint to check file structure"""
-    result = {
-        "status": "success",
-        "file_checks": {}
-    }
-    
-    # Check important CSS files
-    css_files = [
-        "assets/css/bootstrap.min.css",
-        "assets/css/style.css",
-        "assets/css/font-awesome.min.css"
-    ]
-    
-    # Check important JS files
-    js_files = [
-        "assets/js/jquery.min.js",
-        "assets/js/bootstrap.min.js",
-        "assets/js/script.js"
-    ]
-    
-    # Check all files
-    for file_path in css_files + js_files:
-        full_path = os.path.join("viom-website-main", file_path)
-        exists = os.path.exists(full_path)
-        result["file_checks"][file_path] = {
-            "exists": exists,
-            "full_path": full_path,
-            "mime_type": get_mime_type(file_path) if exists else None
-        }
-    
-    # Check directory structure
-    dirs_to_check = [
-        "viom-website-main",
-        "viom-website-main/assets",
-        "viom-website-main/assets/css",
-        "viom-website-main/assets/js",
-        "viom-website-main/assets/images"
-    ]
-    
-    result["directories"] = {}
-    for dir_path in dirs_to_check:
-        exists = os.path.isdir(dir_path)
-        result["directories"][dir_path] = {
-            "exists": exists,
-            "contents": os.listdir(dir_path)[:10] if exists else None  # List first 10 items
-        }
-    
-    return jsonify(result)
-
-@app.route("/debug/mime-check")
-def debug_mime_check():
-    """Debug endpoint to check MIME types of specific files"""
-    result = {
-        "status": "success",
-        "mime_checks": {}
-    }
-    
-    # Test files with different extensions
-    test_files = [
-        "/assets/css/bootstrap.min.css",
-        "/assets/js/jquery.min.js",
-        "/assets/images/logo.jpg",
-        "/assets/css/style.css"
-    ]
-    
-    # Make internal requests to each file
-    with app.test_client() as client:
-        for file_path in test_files:
-            response = client.get(file_path)
-            result["mime_checks"][file_path] = {
-                "status_code": response.status_code,
-                "content_type": response.content_type,
-                "headers": dict(response.headers)
-            }
-    
-    return jsonify(result)
-
 if __name__ == "__main__":
     required_env_vars = [
         'STRIPE_SECRET_KEY',
@@ -770,3 +551,4 @@ if __name__ == "__main__":
     else:
         # In production, Gunicorn will handle the app
         app.run(host="0.0.0.0", port=port, debug=False)
+
