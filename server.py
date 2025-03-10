@@ -506,7 +506,7 @@ def create_checkout_session():
 @limiter.limit("5 per minute")
 def handle_contact_form_python():
     """
-    Handle contact form submission with a more Python-like endpoint
+    Handle the contact form submission with a more Python-like endpoint
     """
     from contact_form import process_contact_form
     return process_contact_form()
