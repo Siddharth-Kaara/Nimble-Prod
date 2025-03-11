@@ -182,27 +182,27 @@
             <h2 id="commands">Commands</h2>
             
             <ol>
-              <li><a href="#generate">Generate</a></li>
-              <li><a href="#enter">Enter</a></li>
-              <li><a href="#click">Click</a></li>
-              <li><a href="#scroll">Scroll</a></li>
-              <li><a href="#swipe">Swipe</a></li>
-              <li><a href="#slide">Slide</a></li>
-              <li><a href="#relaunch-the-app">Relaunch the App</a></li>
-              <li><a href="#restore-the-app-to-the-foreground">Restore the App to the foreground</a></li>
-              <li><a href="#go-back">Go Back</a></li>
-              <li><a href="#go-home">Go Home</a></li>
-              <li><a href="#read-value">Read Value</a></li>
-              <li><a href="#wait">Wait</a></li>
-              <li><a href="#check">Check</a></li>
-              <li><a href="#api-commands">API Commands</a></li>
-              <li><a href="#conditional-executions">Conditional Executions</a></li>
-              <li><a href="#database-commands">Database Commands</a></li>
-              <li><a href="#kafka-eventing-commands">Kafka Eventing Commands</a></li>
-              <li><a href="#string-operations">String Operations</a></li>
-              <li><a href="#date-operations">Date Operations</a></li>
-              <li><a href="#user-defined-subroutines">User-Defined Subroutines</a></li>
-              <li><a href="#system-variables">System Variables</a></li>
+              <li><a href="/nimble/doc#generate">Generate</a></li>
+              <li><a href="/nimble/doc#enter">Enter</a></li>
+              <li><a href="/nimble/doc#click">Click</a></li>
+              <li><a href="/nimble/doc#scroll">Scroll</a></li>
+              <li><a href="/nimble/doc#swipe">Swipe</a></li>
+              <li><a href="/nimble/doc#slide">Slide</a></li>
+              <li><a href="/nimble/doc#relaunch-the-app">Relaunch the App</a></li>
+              <li><a href="/nimble/doc#restore-the-app-to-the-foreground">Restore the App to the foreground</a></li>
+              <li><a href="/nimble/doc#go-back">Go Back</a></li>
+              <li><a href="/nimble/doc#go-home">Go Home</a></li>
+              <li><a href="/nimble/doc#read-value">Read Value</a></li>
+              <li><a href="/nimble/doc#wait">Wait</a></li>
+              <li><a href="/nimble/doc#check">Check</a></li>
+              <li><a href="/nimble/doc#api-commands">API Commands</a></li>
+              <li><a href="/nimble/doc#conditional-executions">Conditional Executions</a></li>
+              <li><a href="/nimble/doc#database-commands">Database Commands</a></li>
+              <li><a href="/nimble/doc#kafka-eventing-commands">Kafka Eventing Commands</a></li>
+              <li><a href="/nimble/doc#string-operations">String Operations</a></li>
+              <li><a href="/nimble/doc#date-operations">Date Operations</a></li>
+              <li><a href="/nimble/doc#user-defined-subroutines">User-Defined Subroutines</a></li>
+              <li><a href="/nimble/doc#system-variables">System Variables</a></li>
             </ol>
             
             <hr>
@@ -786,5 +786,45 @@ endif</div>
   
   <!-- Newsletter handler script -->
   <script src="assets/js/newsletter-handler.js"></script>
+
+  <!-- Anchor Link Handling Script -->
+  <script>
+    document.addEventListener('click', function(event) {
+      // Find the clicked element or its parent if it's a child of an anchor
+      let target = event.target;
+      while (target && target.tagName !== 'A') {
+        target = target.parentElement;
+      }
+      
+      if (target && target.getAttribute('href')?.startsWith('/nimble/doc#')) {
+        event.preventDefault(); // Stop default navigation
+        const hash = target.getAttribute('href').split('#')[1]; // Extract fragment (e.g., "generate")
+        const targetElement = document.getElementById(hash);
+        if (targetElement) {
+          window.scrollTo({
+            top: targetElement.offsetTop - 100, // Adjust for fixed headers
+            behavior: 'smooth' // Smooth scrolling
+          });
+          window.history.pushState(null, null, `#${hash}`); // Update URL to #generate
+        }
+      }
+    });
+    
+    // Handle initial hash in URL when page loads
+    window.addEventListener('DOMContentLoaded', function() {
+      if (window.location.hash) {
+        const hash = window.location.hash.substring(1);
+        const targetElement = document.getElementById(hash);
+        if (targetElement) {
+          setTimeout(function() {
+            window.scrollTo({
+              top: targetElement.offsetTop - 100,
+              behavior: 'smooth'
+            });
+          }, 300); // Slight delay to ensure page is fully loaded
+        }
+      }
+    });
+  </script>
 </body>
 </html> 
