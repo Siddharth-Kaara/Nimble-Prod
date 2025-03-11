@@ -332,7 +332,7 @@ def check_active_license():
             "suspended": False,
             "limit": 1
         }
-        endpoint = "https://api.cryptlex.com/v3/licenses?" + "&".join(f"{k}={v}" for k, v in query_params.items())
+        endpoint = "https://api.eu.cryptlex.com/v3/licenses?" + "&".join(f"{k}={v}" for k, v in query_params.items())
         response = requests.get(endpoint, headers={"Authorization": f"Bearer {CRYPTLEX_TOKEN}"})
         
         if response.status_code == 200:
