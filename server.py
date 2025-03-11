@@ -377,7 +377,7 @@ def create_checkout_session():
         org_domain = org_email.split('@')[1].lower()
         user_domain = user_email.split('@')[1].lower()
         
-        special_domains = ['gmail.com', 'outlook.com', 'hotmail.com', 'yahoo.com']
+        special_domains = []
         if org_domain != user_domain and org_domain not in special_domains:
             error_msg = f"User email domain ({user_domain}) must match organization domain ({org_domain})"
             log_error(error_msg)
