@@ -888,7 +888,7 @@ Yes! It grows with your testing needs.            </p>
             const userDomain = userEmail.split('@')[1].toLowerCase();
             
             // Special domains that are exempt from the domain matching rule
-            const specialDomains = ['gmail.com', 'outlook.com', 'hotmail.com', 'yahoo.com'];
+            const specialDomains = [];
             
             // If organization email is not from a special domain, enforce domain matching
             if (!specialDomains.includes(orgDomain) && orgDomain !== userDomain) {
