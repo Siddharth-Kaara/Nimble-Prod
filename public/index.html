@@ -433,7 +433,7 @@
           <div class="col-xl-10">
             <div class="text-center">
               <h3>Subscribe for Nimble Newsletter</h3>
-              <a class="cta-btn" href="#footer" onclick="document.querySelector('.footer-newsletter input[type=\'email\']').focus();">Subscribe Now</a>
+              <a class="cta-btn" href="#footer" onclick="event.preventDefault(); document.getElementById('footer').scrollIntoView({behavior: 'smooth'}); setTimeout(function() { document.querySelector('.footer-newsletter input[type=\'email\']').focus(); }, 1000);">Subscribe Now</a>
             </div>
           </div>
         </div>
