@@ -11,7 +11,7 @@ from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from werkzeug.exceptions import HTTPException
 
-# Load environment variables from .env file
+# Load environment variables from the .env file
 load_dotenv()
 
 # Configure logging with immediate flushing
