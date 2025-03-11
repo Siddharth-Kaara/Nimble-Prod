@@ -32,6 +32,7 @@
 
     <!-- Custom styles for this template -->
     <link href="assets/css/style.css" rel="stylesheet">
+    <link href="assets/css/newsletter.css" rel="stylesheet">
 
     <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
     <!--[if lt IE 9]>
@@ -737,11 +738,14 @@
                     </div>
                     <div class="col col-md-5">
                         <div class="newsletter-form">
-                            <form>
+                            <form action="/newsletter/subscribe" method="post" id="newsletterForm">
                                 <div>
-                                    <input type="text" class="form-control" placeholder="Email address..">
+                                    <input type="email" name="email" class="form-control" placeholder="Email address.." required>
                                     <button type="submit">Subscribe</button>
                                 </div>
+                                <div class="loading" style="display: none;">Loading...</div>
+                                <div class="error-message"></div>
+                                <div class="sent-message">Your subscription request has been sent. Thank you!</div>
                             </form>
                         </div>
                     </div>
@@ -881,6 +885,9 @@
     <!-- Custom script for this template -->
     <script src="assets/js/script.js"></script>
 
- <div style="z-index: 9999;position: fixed; bottom:20px; float:right;right:20px;"><a href="https://wa.me/919810593803"><img src="assets/images/wp.png"></a></div>
+    <!-- Newsletter handler script -->
+    <script src="assets/js/newsletter-handler.js"></script>
+
+    <div style="z-index: 9999;position: fixed; bottom:20px; float:right;right:20px;"><a href="https://wa.me/919810593803"><img src="assets/images/wp.png"></a></div>
 </body>
 </html>

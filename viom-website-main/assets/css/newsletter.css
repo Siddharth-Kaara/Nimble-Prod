@@ -1,0 +1,45 @@
+.newsletter-form .sent-message {
+    color: #198754;
+    background: #d1e7dd;
+    border: 1px solid #badbcc;
+    padding: 15px;
+    margin-top: 10px;
+    border-radius: 4px;
+    display: none;
+}
+
+.newsletter-form .error-message {
+    color: #dc3545;
+    background: #f8d7da;
+    border: 1px solid #f5c2c7;
+    padding: 15px;
+    margin-top: 10px;
+    border-radius: 4px;
+    display: none;
+}
+
+.newsletter-form .loading {
+    display: none;
+    text-align: center;
+    padding: 15px;
+    margin-top: 10px;
+}
+
+/* Ensure messages are visible in the Viom theme */
+.newsletter-form .sent-message,
+.newsletter-form .error-message,
+.newsletter-form .loading {
+    color: inherit !important;
+    background: transparent !important;
+    border: none !important;
+    font-size: 14px;
+    text-align: center;
+}
+
+.newsletter-form .sent-message {
+    color: #198754 !important;
+}
+
+.newsletter-form .error-message {
+    color: #dc3545 !important;
+} 

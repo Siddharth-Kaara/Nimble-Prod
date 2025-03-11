@@ -18,7 +18,7 @@ load_dotenv()
 
 def send_email(to_email, subject, text_content, html_content=None):
     """
-    Send an email using Gmail SMTP
+    Send an email using Office 365/Gmail SMTP
     
     Args:
         to_email (str): Recipient email address
