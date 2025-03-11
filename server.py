@@ -1,7 +1,7 @@
 import os
 import stripe
 import requests
-from flask import Flask, jsonify, request, send_from_directory, redirect, url_for
+from flask import Flask, jsonify, request, send_from_directory, redirect, url_for, render_template
 from dotenv import load_dotenv
 import json
 from flask_cors import CORS
@@ -11,7 +11,7 @@ from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from werkzeug.exceptions import HTTPException
 
-# Load environment variables from the .env file
+# Load environment variables from .env file
 load_dotenv()
 
 # Configure logging with immediate flushing
@@ -43,7 +43,7 @@ def log_warning(message):
     sys.stdout.flush()
 
 # Flask app setup
-app = Flask(__name__, static_folder="public")
+app = Flask(__name__, static_folder="public", template_folder="public")
 app.logger.setLevel(logging.INFO)
 
 # Initialize rate limiter
@@ -169,6 +169,9 @@ STRIPE_PUBLISHABLE_KEY = os.getenv('STRIPE_PUBLISHABLE_KEY')
 CRYPTLEX_TOKEN = os.getenv("CRYPTLEX_TOKEN")
 WORKER_URL = os.getenv('CLOUDFLARE_WORKER_URL')
 
+# Add this after other environment variables are loaded
+STRIPE_BILLING_URL = os.getenv('STRIPE_BILLING_URL', 'https://billing.stripe.com/p/login/4gw4i0gEY2gZdtC9AA')
+
 # Validate required configuration in production
 if is_production:
     required_vars = [
@@ -262,7 +265,7 @@ def serve_assets(path):
 @limiter.exempt
 def serve_nimble():
     log_info("Serving Nimble product page")
-    return send_from_directory("public", "index.html")
+    return render_template("index.html", stripe_billing_url=STRIPE_BILLING_URL)
 
 @app.route("/nimble/<path:path>")
 @limiter.exempt
@@ -272,7 +275,7 @@ def serve_nimble_assets(path):
     
     try:
         if path in valid_paths:
-            return send_from_directory("public", f"{path}.html")
+            return render_template(f"{path}.html", stripe_billing_url=STRIPE_BILLING_URL)
         elif path.startswith("assets/"):
             log_info(f"Serving Nimble asset: {path}")
             return send_from_directory("public", path)
